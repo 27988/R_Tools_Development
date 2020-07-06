@@ -4,15 +4,16 @@
 #' @param data A dataframe.
 #' @param varlist A vector of numeric variables to be imputed.
 #' @param type_num Type of imputation for numeric variables to be used. Mean is Default method.
+#' @param round Upto which decimal should imputed numeric values be rounded. Default rounds to whole number.
 #' @param factvarlist A vector of factor variables to be imputed.
 #' @param type_fact Type of imputation for factor variables to be used. Add 'missing' level is Default method.
 #' @return input dataset with imputed values.
 #' @examples
-#' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mean",factvarlist=c("rank"),type_fact = "mode")
-#' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "median",factvarlist=c("rank"),type_fact="missing")
+#' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mean",round=0,factvarlist=c("rank"),type_fact = "mode")
+#' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "median",round=2,factvarlist=c("rank"),type_fact="missing")
 #' 
 
-impute <- function(data, numvarlist,type_num = "mean",factvarlist,type_fact = "missing") {
+impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_fact = "missing") {
   
 
   if (!is.null(numvarlist)) {
@@ -20,25 +21,25 @@ impute <- function(data, numvarlist,type_num = "mean",factvarlist,type_fact = "m
     data[[i]] <- as.numeric(data[[i]])
     summ <- list()
     if (tolower(type_num) == "mean") {
-    summ[[i]] <- round(mean(data[[i]],na.rm=TRUE))
+    summ[[i]] <- round(mean(data[[i]],na.rm=TRUE),round)
     data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
   
     else if (tolower(type_num) == "median") {
-      summ[[i]] <- round(median(data[[i]],na.rm=TRUE))
+      summ[[i]] <- round(median(data[[i]],na.rm=TRUE),round)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     
     else if (tolower(type_num) == "mode") {
-      summ[[i]] <- Mode(data[[i]],na.rm=TRUE)
+      summ[[i]] <- Mode(data[[i]],na.rm=TRUE,round)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     else if (tolower(type_num) == "max") {
-      summ[[i]] <- max(data[[i]],na.rm=TRUE)
+      summ[[i]] <- max(data[[i]],na.rm=TRUE,round)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     else if (tolower(type_num) == "min") {
-      summ[[i]] <- min(data[[i]],na.rm=TRUE)
+      summ[[i]] <- min(data[[i]],na.rm=TRUE,round)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     else stop("ERROR: Only minimum, maximum, mean, median and mode allowed for type of numeric variables imputation")
@@ -67,8 +68,8 @@ library(DescTools)
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 data[1,] <- c(NA,NA,NA,NA,NA,NA,0)
 data$salary = as.integer(data$salary)
-data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mean",factvarlist=c("rank"),type_fact="missing")
-str(data)
+data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mode",round=2,factvarlist=c("rank"),type_fact="missing")
+
 
 
 
