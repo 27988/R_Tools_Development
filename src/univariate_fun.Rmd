@@ -1,0 +1,40 @@
+---
+title: "Univariate Plot Functions"
+author: "Ryan Duggan"
+date: "7/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+temp_df <- data.frame(a = c(1,2,3), b = as.factor(c("A", "B", "A")), c = c(4000, 5, 60), 
+                      d = c(100, 1000, 1000), e = c(1000, 10000, 10000))
+
+outcome_parser <- function(df, outcome) {
+  if(!str_detect(paste0(names(df), collapse = "|"), outcome)) {
+    stop(sprintf("Variable %s not found in dataset %s", outcome, deparse(substitute(df))))
+  } else {return(TRUE)}
+}
+
+outcome_parser(temp_df, "a")
+```
+
+```{r}
+univariate_fun <- function(df, outcome, exclude_vars) {
+  if(outcome_parser(df = df, outcome = outcome)) {
+    if(!missing(exclude_vars)){
+      exclude_vars <- paste0("-", exclude_vars, collapse = " ")
+      univariate_formula <- as.formula(paste(outcome, "~ .", "- ", exclude_vars))
+      }
+    else {
+      univariate_formula <- as.formula(paste(outcome, "~ ."))
+    }
+  }
+  glm(univariate_formula, data = df, family = "binomial") %>% summary
+}
+
+univariate_fun(temp_df, "b")
+```
