@@ -7,7 +7,7 @@
 #' @param round Upto which decimal should imputed numeric values be rounded. Default rounds to whole number.
 #' @param factvarlist A vector of factor variables to be imputed.
 #' @param type_fact Type of imputation for factor variables to be used. Add 'missing' level is Default method.
-#' @return input dataset with imputed values.
+#' @return Input dataset with imputed values.
 #' @examples
 #' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mean",round=0,factvarlist=c("rank"),type_fact = "mode")
 #' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "median",round=2,factvarlist=c("rank"),type_fact="missing")

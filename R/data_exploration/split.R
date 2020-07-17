@@ -7,7 +7,7 @@
 #' @param splitkey A key (variable) used to identify all records of the same entity (e.g.patient ID)
 #' @param stratifyby A single column name or vector of column names that will be used to stratify data.
 #' @param trainprop Proportion that should be retained in train dataset. Value ranges between 0 and 1. Default is 0.70.
-#' @return dataframes as train and test.
+#' @return Dataframes as train and test.
 #' @examples
 #' res = split(data=data,filetype = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.70)
 #' res = split(data=data, filetype = "dataframe",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)

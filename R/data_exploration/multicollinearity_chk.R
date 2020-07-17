@@ -1,19 +1,22 @@
 #' Check for Multicollinearity among candidate predictors.
 #'
 #' @param data A dataframe.
-#' @param varlist A vector of numeric variables to be imputed.
-#' @param type_num Type of imputation for numeric variables to be used. Mean is Default method.
-#' @param round Upto which decimal should imputed numeric values be rounded. Default rounds to whole number.
-#' @param factvarlist A vector of factor variables to be imputed.
-#' @param type_fact Type of imputation for factor variables to be used. Add 'missing' level is Default method.
-#' @return input dataset with imputed values.
+#' @param excludeVars A vector of variables to be excluded form multicollinearity check
+#' @param numVars A vector of numeric variables (optional)
+#' @param categoricalVars A vector of character (categorical) variables (optional)
+#' @param cutoff Cutoff of correlation coefficient or Cramer's V coefficient to be used to output correlated variables
+#' @param corrmethod Correlation coefficient method to be used, Default is 'pearson'. Options are 'kendall', 'spearman'
+#' @param outtype Type of output file
+#' @param outpath Path of output file if xls or xlsx outtype selected
+#' @return A list of 2 dataframes; correlation analysis of numeric variables are stored as list1 and categorical analysis is stored as list2.
 #' @examples
-#' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mean",round=0,factvarlist=c("rank"),type_fact = "mode")
-#' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "median",round=2,factvarlist=c("rank"),type_fact="missing")
-#' 
+#' multi_out <- multicoll_chk(data=data,numVars=c("yrs.service","yrs.since.phd"),categoricalVars = c("rank","discipline"))
+#' multi_out <- multicoll_chk(data=data)
+#' multi_out <- multicoll_chk(data=data,excludeVars="patient_id")
+#' multi_out <- multicoll_chk(data=data,excludeVars=NULL,outtype="xls",outpath="/stats/projects/all/R_Tools_Development/data/multicoll_chk.xls")
 
 
-multicoll_chk <- function(data,numVars=NULL,categoricalVars=NULL,remove.corr='N',corrmethod="pearson") {
+multicoll_chk <- function(data,excludeVars=NULL,numVars=NULL,categoricalVars=NULL,cutoff=0,corrmethod="pearson",outtype="list",outpath) {
   
   #Identify numeric variables if is.null(numVars)
   if (is.null(numVars)) {
@@ -27,6 +30,7 @@ multicoll_chk <- function(data,numVars=NULL,categoricalVars=NULL,remove.corr='N'
     
   }
   numVars <- na.omit(numVars)
+  numVars <- numVars[!(numVars %in% excludeVars)]
   
   #Identify character/categorical variables if is.null(categoricalVars)
   if (is.null(categoricalVars)) {
@@ -40,6 +44,7 @@ multicoll_chk <- function(data,numVars=NULL,categoricalVars=NULL,remove.corr='N'
     }
   }
   categoricalVars <- na.omit(categoricalVars)
+  categoricalVars <- categoricalVars[!(categoricalVars %in% excludeVars)]
   
   #Correlation for categorical variables
   library(pedometrics)
@@ -49,18 +54,28 @@ multicoll_chk <- function(data,numVars=NULL,categoricalVars=NULL,remove.corr='N'
   }  else {    cramer_d <- data[,which(colnames(data) %in% categoricalVars)]}
   
   if (length(cramer_d) > 0 ) {
-  cramer_v <- as.vector(0)
-  cramer_vars <- matrix(0,dim(cramer_d)[2]-1,2)
+ 
+  cramer_vars <- matrix(0,((dim(cramer_d)[2]*(dim(cramer_d)[2]-1))/2),3)
+ 
+  cramer_v <- cramer(cramer_d)
   
-  for (i in 1:(dim(cramer_d)[2]-1)){
-    cramer_v[i] <- cramer(cramer_d[,c(i,i+1)])[1,2]
-    cramer_vars[i,] <- colnames(cramer(cramer_d[,c(i,i+1)]))
+    c=0
+    for (j in 1:dim(cramer_v)[2]) {
+      if ((j+1) <= dim(cramer_v)[2]) {for (k in (j+1):dim(cramer_v)[2]) {
+        c=c+1
+       cramer_vars[c,1] <- rownames(cramer_v)[j]
+       cramer_vars[c,2] <- colnames(cramer_v)[k]
+       cramer_vars[c,3] <- cramer_v[j,k]
+     }
     }
+   }
+    cramer_vars <- data.frame(cramer_vars)
+    colnames(cramer_vars) <- c("Variable1", "Variable2", "Coeff")
+    cramer_vars$Coeff <- as.numeric(as.character(cramer_vars$Coeff))
   
   #Track the variables that are highly correlated
-  corr_categorical <- cramer_vars[which(cramer_v > 0.5),]
-  excl_cat_list <- matrix(cramer_vars[which(cramer_v > 0.5),]); excl_cat_list <- excl_cat_list[((dim(excl_cat_list)[1]/2)+1):dim(excl_cat_list)[1]]
-  if (remove.corr == "Y") {data <- data[,which(!colnames(data) %in% excl_cat_list)] }
+  corr_categorical <- cramer_vars[cramer_vars[["Coeff"]] >= cutoff,]
+  
 }
 
   #Correlation for numeric variables
@@ -69,26 +84,46 @@ multicoll_chk <- function(data,numVars=NULL,categoricalVars=NULL,remove.corr='N'
   } else {corr_d <- data[,which(colnames(data) %in% numVars)]}
   
   if (length(corr_d) > 0 ) {
-    corr_v <- as.vector(0)
-    corr_vars <- matrix(0,dim(corr_d)[2]-1,2)
     
-    for (i in 1:(dim(corr_d)[2]-1)){
-      corr_v[i] <- cor(corr_d[,c(i,i+1)], use="complete.obs", method=corrmethod)[1,2]
-      corr_vars[i,] <- colnames(cor(corr_d[,c(i,i+1)], use="complete.obs", method=corrmethod))
+    corr_vars <- matrix(0,((dim(corr_d)[2]*(dim(corr_d)[2]-1))/2),3)
+    
+    corr_v <- cor(corr_d, use="complete.obs", method=corrmethod)
+    
+    c=0
+    for (j in 1:dim(corr_v)[2]) {
+      if ((j+1) <= dim(corr_v)[2]) {for (k in (j+1):dim(corr_v)[2]) {
+        c=c+1
+        corr_vars[c,1] <- rownames(corr_v)[j]
+        corr_vars[c,2] <- colnames(corr_v)[k]
+        corr_vars[c,3] <- corr_v[j,k]
+      }
+      }
     }
     
+   
+    corr_vars <- data.frame(corr_vars)
+    colnames(corr_vars) <- c("Variable1", "Variable2", "Coeff")
+    corr_vars$Coeff <- as.numeric(as.character(corr_vars$Coeff))
+    
     #Track the variables that are highly correlated
-    corr_num <- corr_vars[which(corr_v > 0.5),]
-    excl_num_list <- matrix(corr_vars[which(corr_v > 0.5),]); excl_num_list <- excl_num_list[((dim(excl_num_list)[1]/2)+1):dim(excl_num_list)[1]]
-    if (remove.corr == "Y") {data <- data[,which(!colnames(data) %in% excl_num_list)] }
+    corr_num <- corr_vars[corr_vars[["Coeff"]] >= cutoff,]
+    
     
   }
   
+  
+  
+  if (outtype == "list"){
     corr_list <- list()
-    corr_list$num_list <- ifelse(length(excl_num_list) >0, excl_num_list, NA)
-    corr_list$cat_list <- ifelse(length(excl_cat_list) >0, excl_cat_list, NA)
-    
+    corr_list$numeric_list <- corr_num
+    corr_list$categorical_list <- corr_categorical
     return(corr_list)
+  } else if (tolower(outtype) == "xls" | tolower(outtype) == "xlsx") {
+    
+    write.xlsx(corr_num, file=outpath, sheetName="Numeric List", row.names=FALSE)
+    write.xlsx(corr_categorical, file=outpath, sheetName="Categorical List", append=TRUE, row.names=FALSE)
+    
+  } else stop("ERROR: Type of output file should either be list, xls or xlsx")
 }
 
 
@@ -96,6 +131,10 @@ multicoll_chk <- function(data,numVars=NULL,categoricalVars=NULL,remove.corr='N'
 library(xlsx)
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 
-a = multicoll_chk(data=data,numVars=c("yrs.service","yrs.since.phd"),categoricalVars = c("rank","discipline"),remove.corr="Y")
-a = multicoll_chk(data=data,remove.corr="N")
+a = multicoll_chk(data=data,numVars=c("yrs.service","yrs.since.phd"),categoricalVars = c("rank","discipline"))
+a = multicoll_chk(data=data)
+a = multicoll_chk(data=data,excludeVars="patient_id")
+a = multicoll_chk(data=data,excludeVars=NULL,outtype="xls",outpath="/stats/projects/all/R_Tools_Development/data/multicoll_chk.xls")
+
+
 
