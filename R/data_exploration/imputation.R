@@ -69,7 +69,7 @@ impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_f
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 data[1,] <- c(NA,NA,NA,NA,NA,NA,0)
 data$salary = as.integer(data$salary)
-data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "max",round=2,factvarlist=c("rank"),type_fact="mode")
+data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "max",round=2,factvarlist=c("rank"),type_fact="missing")
 
 
 
