@@ -3,10 +3,10 @@
 #'
 #' @param data A dataframe.
 #' @param numvarlist A vector of numeric variables to be imputed.
-#' @param type_num Type of imputation for numeric variables to be used. Mean is Default method.
+#' @param type_num Type of imputation for numeric variables to be used. Mean is Default method. Choices are min, max, mean, median and mode.
 #' @param round Upto which decimal should imputed numeric values be rounded. Default rounds to whole number.
 #' @param factvarlist A vector of factor variables to be imputed.
-#' @param type_fact Type of imputation for factor variables to be used. Add 'missing' level is Default method.
+#' @param type_fact Type of imputation for factor variables to be used. Add 'missing' level is Default method. Choices are mode and missing.
 #' @return Input dataset with imputed values.
 #' @examples
 #' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mean",round=0,factvarlist=c("rank"),type_fact = "mode")
@@ -43,7 +43,7 @@ impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_f
       summ[[i]] <- min(data[[i]],na.rm=TRUE)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
-    else stop("ERROR: Only minimum, maximum, mean, median and mode allowed for type of numeric variables imputation")
+    else stop("ERROR: Only min, max, mean, median and mode allowed for type of numeric variables imputation")
   }
   }
   
@@ -69,7 +69,7 @@ impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_f
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 data[1,] <- c(NA,NA,NA,NA,NA,NA,0)
 data$salary = as.integer(data$salary)
-data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "mode",round=2,factvarlist=c("rank"),type_fact="missing")
+data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "max",round=2,factvarlist=c("rank"),type_fact="mode")
 
 
 

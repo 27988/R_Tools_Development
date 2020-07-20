@@ -1,13 +1,13 @@
 #' Check for Multicollinearity among candidate predictors.
 #'
 #' @param data A dataframe.
-#' @param excludeVars A vector of variables to be excluded form multicollinearity check
-#' @param numVars A vector of numeric variables (optional)
-#' @param categoricalVars A vector of character (categorical) variables (optional)
-#' @param cutoff Cutoff of correlation coefficient or Cramer's V coefficient to be used to output correlated variables
-#' @param corrmethod Correlation coefficient method to be used, Default is 'pearson'. Options are 'kendall', 'spearman'
-#' @param outtype Type of output file
-#' @param outpath Path of output file if xls or xlsx outtype selected
+#' @param excludeVars A vector of variables to be excluded form multicollinearity check.
+#' @param numVars A vector of numeric variables (optional).
+#' @param categoricalVars A vector of character (categorical) variables (optional).
+#' @param cutoff Cutoff of correlation coefficient or Cramer's V coefficient to be used to output correlated variables.
+#' @param corrmethod Correlation coefficient method to be used, Default is 'pearson'. Options are 'kendall', 'spearman'.
+#' @param outtype Type of output file.
+#' @param outpath Path of output file if xls or xlsx outtype selected.
 #' @return A list of 2 dataframes; correlation analysis of numeric variables are stored as list1 and categorical analysis is stored as list2.
 #' @examples
 #' multi_out <- multicoll_chk(data=data,numVars=c("yrs.service","yrs.since.phd"),categoricalVars = c("rank","discipline"))

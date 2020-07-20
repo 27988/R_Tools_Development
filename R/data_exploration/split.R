@@ -4,7 +4,7 @@
 #' @param data A dataframe if filetype is dataframe or file path.
 #' @param filetype Type of file read. Provide extension of file if not dataframe. Permissible filetypes are Rds, rds, csv, xls and xlsx.
 #' @param seed Random seed value.
-#' @param splitkey A key (variable) used to identify all records of the same entity (e.g.patient ID)
+#' @param splitkey A key (variable) used to identify all records of the same entity (e.g.patient ID).
 #' @param stratifyby A single column name or vector of column names that will be used to stratify data.
 #' @param trainprop Proportion that should be retained in train dataset. Value ranges between 0 and 1. Default is 0.70.
 #' @return Dataframes as train and test.
