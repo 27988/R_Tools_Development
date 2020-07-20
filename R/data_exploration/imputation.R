@@ -2,7 +2,7 @@
 #' Imputation of missing values.
 #'
 #' @param data A dataframe.
-#' @param varlist A vector of numeric variables to be imputed.
+#' @param numvarlist A vector of numeric variables to be imputed.
 #' @param type_num Type of imputation for numeric variables to be used. Mean is Default method.
 #' @param round Upto which decimal should imputed numeric values be rounded. Default rounds to whole number.
 #' @param factvarlist A vector of factor variables to be imputed.
@@ -15,6 +15,7 @@
 
 impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_fact = "missing") {
   
+  library(DescTools)
 
   if (!is.null(numvarlist)) {
   for(i in numvarlist ){
@@ -31,15 +32,15 @@ impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_f
     }
     
     else if (tolower(type_num) == "mode") {
-      summ[[i]] <- Mode(data[[i]],na.rm=TRUE,round)
+      summ[[i]] <- Mode(data[[i]],na.rm=TRUE)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     else if (tolower(type_num) == "max") {
-      summ[[i]] <- max(data[[i]],na.rm=TRUE,round)
+      summ[[i]] <- max(data[[i]],na.rm=TRUE)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     else if (tolower(type_num) == "min") {
-      summ[[i]] <- min(data[[i]],na.rm=TRUE,round)
+      summ[[i]] <- min(data[[i]],na.rm=TRUE)
       data[[i]] <- ifelse(is.na(data[[i]]),summ[[i]],data[[i]])
     }
     else stop("ERROR: Only minimum, maximum, mean, median and mode allowed for type of numeric variables imputation")
@@ -64,7 +65,7 @@ impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_f
 }
 
 #Test 
-library(DescTools)
+
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 data[1,] <- c(NA,NA,NA,NA,NA,NA,0)
 data$salary = as.integer(data$salary)
