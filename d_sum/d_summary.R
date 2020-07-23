@@ -5,24 +5,25 @@
 # Author: Yi Yang
 
 
+
 #############################################################################################################
 
 
 #' Summary of Descriptive Statistics
 #'
 #' @param formula An object of class formula, describing how variables to be summarized. 
-#' @param data input data for summary statistics, default is data frame. If data is not in data frame, please put your data path here
-#' @param filetype input filetype, currently can accept data frame, rds, csv, xls, xlsx, default is data frame.
-#' @param savetype output type, currently can be rmd, rds, html and pdf, default is rmd.
-#' @param savepath if output type is rds, html and pdf, please put your save path here. 
-#' @param to_numeric an optional input to change variable class to numeric
-#' @param to_factor an optional input to change variable class to factor
-#' @return input dataset with imputed values.
+#' @param data Input data for summary statistics, default is data frame. If data is not in data frame, please put your data path here
+#' @param filetype Input file type, currently can accept data frame, rds, csv, xls, xlsx, default is data frame.
+#' @param savetype Output type, currently can be rmd, rds, html and pdf, default is rmd.
+#' @param savepath If output type is rds, html or pdf, please put your save path here. 
+#' @param to_numeric An optional input to change variable class to numeric
+#' @param to_factor An optional input to change variable class to factor
+#' @return Descriptive Summary Tables
 #' @examples
 #' 
 #' d_summary(sex ~ race + age, mockstudy)
 #' d_summary(sex ~ race + age, mockstudy, to_factor = "race")
-#' d_sum<-d_summary(sex ~ race + age, mockstudy, to_factor = "race")
+#' d_summary(sex ~ race + age, mockstudy, to_factor = "race",  cat.stats = "countrowpct") 
 #' d_summary(sex ~., mockstudy, savetype = "rds", savepath = "/home/yyang/r_pack/r_test.Rds")
 #' d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf")
 #' d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "html", savepath = "/home/yyang/r_pack/r_test.html")
@@ -31,7 +32,7 @@
 
 # require pacakage: tidyverse, arsenal
 
-d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, to_factor = NULL, savetype = "rmd", savepath = NULL) {
+d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, to_factor = NULL, savetype = "rmd", savepath = NULL, ...) {
   
   if (tolower(filetype) == "dataframe") {data = data}
   else if (tolower(filetype) == "rds") {data = readRDS(data)}
@@ -59,8 +60,8 @@ d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, 
   data_b<-names(dplyr::select_if(data, is.character))
   
   f1 <- as.formula(formula)
-  tab1<-tableby(f1, data_a)
-  tab1s<- summary(tab1, text = TRUE)
+  tab1<-tableby(f1, data_a, ...)
+  tab1s<- summary(tab1, text = TRUE, ...)
   
   if (tolower(savetype) == "rmd") {
     tab1s %>%
@@ -98,29 +99,7 @@ d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, 
 ######## test
 d_summary(sex ~ race + age, mockstudy)
 d_summary(sex ~ race + age, mockstudy, to_factor = "race")
+d_summary(sex ~ race + age, mockstudy, to_factor = "race",  cat.stats = "countrowpct")  # if you need to calculate row percentage
 d_sum<-d_summary(sex ~ race + age, mockstudy, to_factor = "race")
 d_summary(sex ~., mockstudy, savetype = "rds", savepath = "/home/yyang/r_pack/r_test.Rds")
 d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf")
-d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "html", savepath = "/home/yyang/r_pack/r_test.html")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
