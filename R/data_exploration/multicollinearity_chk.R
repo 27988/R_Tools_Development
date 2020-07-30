@@ -18,33 +18,17 @@
 
 multicoll_chk <- function(data,excludeVars=NULL,numVars=NULL,categoricalVars=NULL,cutoff=0,corrmethod="pearson",outtype="list",outpath) {
   
+  var_type <- var_type_identify(data=data,excludeVars=excludeVars)
   #Identify numeric variables if is.null(numVars)
   if (is.null(numVars)) {
-    numVars <- NA
+    numVars <- var_type[[1]]
 }
-  if (is.na(numVars[1])) {
-    for (i in 1:dim(data)[2]) {
-      yesnum <-  is.numeric(data[,i])
-      numVars <- append(numVars,ifelse(yesnum == "TRUE", colnames(data)[i],numVars),after = length(numVars))
-    }
-    
-  }
-  numVars <- na.omit(numVars)
-  numVars <- numVars[!(numVars %in% excludeVars)]
   
   #Identify character/categorical variables if is.null(categoricalVars)
   if (is.null(categoricalVars)) {
-    categoricalVars <- NA
+    categoricalVars <- var_type[[2]]
   }
-  if (is.na(categoricalVars[1])) {
-    categoricalVars <- NA
-    for (i in 1:dim(data)[2]) {
-      yescat <-  is.character(data[,i]) | is.factor(data[,i])
-      categoricalVars <- append(categoricalVars,ifelse(yescat == "TRUE", colnames(data)[i],categoricalVars),after = length(categoricalVars))
-    }
-  }
-  categoricalVars <- na.omit(categoricalVars)
-  categoricalVars <- categoricalVars[!(categoricalVars %in% excludeVars)]
+  
   
   #Correlation for categorical variables
   library(pedometrics)

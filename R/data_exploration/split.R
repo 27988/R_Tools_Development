@@ -21,12 +21,7 @@ split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratif
   
   set.seed(seed)
   
-  if (tolower(filetype) == "dataframe") {data = data}
-  else if (tolower(filetype) == "rds") {data = readRDS(data)}
-  else if (tolower(filetype) == "xls") {data = read.xlsx(data, sheetName = 1, header = TRUE)}
-  else if (tolower(filetype) == "xlsx") {data =  read.xlsx(data, sheetName = 1, header = TRUE)}
-  else if (tolower(filetype) == "csv") {data = read.csv(data,header = TRUE, sep = ",")}
-  else stop("ERROR: File type is not compatible")
+  data <- filetype(data=data,filetype=filetype)
   
   #If unique ID is not required
   if (is.null(splitkey)) {

@@ -2,6 +2,7 @@
 #' Imputation of missing values.
 #'
 #' @param data A dataframe.
+#' @param excludeVars A vector of variables to be excluded form imputation.
 #' @param numvarlist A vector of numeric variables to be imputed.
 #' @param type_num Type of imputation for numeric variables to be used. Mean is Default method. Choices are min, max, mean, median and mode.
 #' @param round Upto which decimal should imputed numeric values be rounded. Default rounds to whole number.
@@ -13,10 +14,16 @@
 #' data <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "median",round=2,factvarlist=c("rank"),type_fact="missing")
 #' 
 
-impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_fact = "missing") {
+impute <- function(data, excludeVars=NULL,numvarlist=NULL,type_num = "mean",round=0,factvarlist=NULL,type_fact = "missing") {
   
   library(DescTools)
 
+  var_type <- var_type_identify(data=data,excludeVars=excludeVars)
+  #Identify numeric variables if is.null(numvarlist)
+  if (is.null(numvarlist)) {
+    numvarlist <- var_type[[1]]
+  }
+  
   if (!is.null(numvarlist)) {
   for(i in numvarlist ){
     data[[i]] <- as.numeric(data[[i]])
@@ -47,6 +54,11 @@ impute <- function(data, numvarlist,type_num = "mean",round=0,factvarlist,type_f
   }
   }
   
+  #Identify character/categorical variables if is.null(factvarlist)
+  if (is.null(factvarlist)) {
+    factvarlist <- var_type[[2]]
+  }
+  
   if (!is.null(factvarlist)) {
     for(i in factvarlist ){
       
@@ -70,7 +82,7 @@ data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 data[1,] <- c(NA,NA,NA,NA,NA,NA,0)
 data$salary = as.integer(data$salary)
 data_imputed <- impute(data=data,numvarlist=c("salary","yrs.service"),type_num = "max",round=2,factvarlist=c("rank"),type_fact="missing")
-
+data_imputed <- impute(data=data)
 
 
 
