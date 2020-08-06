@@ -2,9 +2,6 @@
 
 # descriptive statistics
 
-# Author: Yi Yang
-
-
 
 #############################################################################################################
 
@@ -18,21 +15,25 @@
 #' @param savepath If output type is rds, html or pdf, please put your save path here. 
 #' @param to_numeric An optional input to change variable class to numeric
 #' @param to_factor An optional input to change variable class to factor
+#' @param level_droprange set the maximum level of a character variable that will be included in the summary table, 
+#' if a character variable's level exceeds this range, it will be automatically drop from the summary table, default value is 20.
 #' @return Descriptive Summary Tables
 #' @examples
 #' 
 #' d_summary(sex ~ race + age, mockstudy)
-#' d_summary(sex ~ race + age, mockstudy, to_factor = "race")
-#' d_summary(sex ~ race + age, mockstudy, to_factor = "race",  cat.stats = "countrowpct") 
-#' d_summary(sex ~., mockstudy, savetype = "rds", savepath = "/home/yyang/r_pack/r_test.Rds")
-#' d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf")
-#' d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "html", savepath = "/home/yyang/r_pack/r_test.html")
+#' d_summary(sex ~ race + age, mockstudy, cat.stats = "countrowpct")  # if you need to calculate row percentage
+#' d_summary(sex ~., mockstudy, level_droprange = 5) # set level drop range rather than default
+#' d_summary(sex ~ race + age, mockstudy, savetype = "rds", savepath = "/home/yyang/r_pack/r_test.Rds")
+#' d_summary(sex ~ age + bmi + race, mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf")
+#' d_summary(sex ~., mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf", level_droprange = 5)
+
+
 
 
 
 # require pacakage: tidyverse, arsenal
 
-d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, to_factor = NULL, savetype = "rmd", savepath = NULL, ...) {
+d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, to_factor = NULL, level_droprange = 20,  savetype = "rmd", savepath = NULL, ...) {
   
   if (tolower(filetype) == "dataframe") {data = data}
   else if (tolower(filetype) == "rds") {data = readRDS(data)}
@@ -56,8 +57,58 @@ d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, 
     }
   }
   
-  data_a<-dplyr::select_if(data, purrr::negate(is.character))
-  data_b<-names(dplyr::select_if(data, is.character))
+  
+  var_type_identify <- function (data,excludeVars=NULL) {
+    
+    #Identify numeric variables 
+    numVars <- NA
+    
+    if (is.na(numVars[1])) {
+      for (i in 1:dim(data)[2]) {
+        yesnum <-  is.numeric(data[,i]) | is.integer(data[,i])
+        numVars <- append(numVars,ifelse(yesnum == "TRUE", colnames(data)[i],numVars),after = length(numVars))
+      }
+      
+    }
+    numVars <- na.omit(numVars)
+    numVars <- numVars[!(numVars %in% excludeVars)]
+    
+    #Identify character/categorical variables
+    
+    categoricalVars <- NA
+    
+    if (is.na(categoricalVars[1])) {
+      categoricalVars <- NA
+      for (i in 1:dim(data)[2]) {
+        yescat <-  is.character(data[,i]) | is.factor(data[,i])
+        categoricalVars <- append(categoricalVars,ifelse(yescat == "TRUE", colnames(data)[i],categoricalVars),after = length(categoricalVars))
+      }
+    }
+    categoricalVars <- na.omit(categoricalVars)
+    categoricalVars <- categoricalVars[!(categoricalVars %in% excludeVars)]
+    
+    return(list(numVars,categoricalVars))
+  }
+  
+  var_type_cf <- var_type_identify(data)[[2]]    # get character/factor variablie lists
+  
+  if (!is.null(var_type_cf)) {
+    for(i in var_type_cf){
+      data[[i]] <- as.factor(as.character(data[[i]]))
+    }
+  }
+  
+  if (! is.null(level_droprange)) {
+    l1 <- setDT(as.data.frame(sapply(data[,sapply(data, is.factor)], nlevels)), keep.rownames = TRUE)  
+    names(l1)[2] <- "nlevels"
+    l2 <- subset(l1, l1$nlevels>level_droprange)
+    l3<-l2$rn   # drop list names
+  }
+  
+  if (!purrr::is_empty(l3)) {data_a <- data[, -which(names(data) %in% l3)] }  # remove factor column which level exceed the setting range
+  else if (purrr::is_empty(l3)) {data_a <- data}
+  else stop ("ERROR: Please check level droprange")
+  
   
   f1 <- as.formula(formula)
   tab1<-tableby(f1, data_a, ...)
@@ -83,23 +134,15 @@ d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, 
   }
   else stop ("ERROR: Please check if savetype or savepath is missing/valid")
   
-  if (! purrr::is_empty(data_b) & savetype == "rmd") {
-    message ("Warning: You have some character variables below dropped from summary, use to_factor to convert")
-    return(list (data_b, result))
+  if (! purrr::is_empty(l3) & savetype == "rmd") {
+    message ("Warning: You will have some variables below dropped from summary since they exceed maximum level_droprange")
+    return(list (l3, result))
   }
-  else if (! purrr::is_empty(data_b) & savetype != "rmd") {
-    message ("Warning: You have some character variables below dropped from summary, use to_factor to convert")
-    return(data_b)
+  else if (! purrr::is_empty(l3) & savetype != "rmd") {
+    message ("Warning: You will have some variables below dropped from summary since they exceed maximum level_droprange")
+    return(l3)
   }
-  
+  else if (purrr::is_empty(l3) & savetype == "rmd") {
+    return(result)
+  }
 }
-
-
-
-######## test
-d_summary(sex ~ race + age, mockstudy)
-d_summary(sex ~ race + age, mockstudy, to_factor = "race")
-d_summary(sex ~ race + age, mockstudy, to_factor = "race",  cat.stats = "countrowpct")  # if you need to calculate row percentage
-d_sum<-d_summary(sex ~ race + age, mockstudy, to_factor = "race")
-d_summary(sex ~., mockstudy, savetype = "rds", savepath = "/home/yyang/r_pack/r_test.Rds")
-d_summary(sex ~ age + bmi + race, to_factor = "race", mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf")
