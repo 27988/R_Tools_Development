@@ -4,7 +4,7 @@
 #' @param outcome
 #' @param exclude_vars
 #' @param plot
-#' @return ddddddddddddddd
+#' @return ...
 #' @examples
 #' univariate_fun(df = salaries_data, outcome = "salary", exclude_vars = "patient_id, plot = TRUE)
 univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE) {
@@ -35,7 +35,8 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
   #running univariate analysis 
   df <- df_prep_fun(df, outcome = outcome)
   
-  # if outcome is null, function will just conduct exploratory analysis on all variables in df not specified in exclude_vars. If an outcome is specified, below code will run
+  # if outcome is null, function will just conduct exploratory analysis on all variables in df 
+  #  not specified in exclude_vars. If an outcome is specified, below code will run...
   if(!is.null(outcome)){
     if(outcome_parser(df = df, outcome = outcome)) {
       df_outcome <- df %>%
@@ -160,3 +161,5 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
   }
 }
 
+# function produces error when outcome has period in name, need to address that
+univariate_fun(iris, outcome = "Sepal_Length", plot = T)
