@@ -1,54 +1,97 @@
 #' Conduct data exploration on individual variables
 #'
-#' @param df
-#' @param outcome
-#' @param exclude_vars
-#' @param plot
-#' @return ...
+#' @param df Input dataset; function accepts data.frame objects, as well as direct inputs of .rda/.RData, .rds, .csv, .xls, and .xlsx files
+#' @param facet_var Optional character string of a grouping variable or outcome variable to compare univariate results; defaults to pure univariate analysis
+#' @param exclude_vars Optional character string or vector of character strings specifying variables that should be excluded from analysis, I.E. identifiers, record version indicators, etc.
+#' @param plot Should plots be included in output? Will most likely be removed to force plot inclusion. Defaults to false
+#' @param save If true, will output PDF report of univariate analysis. False, will return list of tables and plot objects for future use. Defaults to FALSE
+#' @return 
 #' @examples
-#' univariate_fun(df = salaries_data, outcome = "salary", exclude_vars = "patient_id, plot = TRUE)
-univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE) {
+#' univariate_fun(df = salaries_data, facet_var = "salary", exclude_vars = "patient_id, plot = TRUE, save = TRUE)
+univariate_fun <- function(df, facet_var = NULL, exclude_vars = NULL, plot = FALSE, save = FALSE) {
   require(tidyverse)
   #defining internal functions
   
-  outcome_parser <- function(df, outcome) {
-    if(!stringr::str_detect(paste0(names(df), collapse = "|"), outcome)) {
-      stop(sprintf("Variable %s not found in dataset %s", outcome, deparse(substitute(df))))
+  facet_var_parser <- function(df, facet_var_var) {
+    if(!stringr::str_detect(paste0(names(df), collapse = "|"), facet_var)) {
+      stop(sprintf("Variable %s not found in dataset %s", facet_var, deparse(substitute(df))))
     } else {return(TRUE)}
   }
-  #preparing df by converting character variables to factors and numeric variables into discrete factors
-  df_prep_fun <- function(df, outcome = NULL) {
+  exclude_parser <- function(df, exclude_vars) {
+    if (
+      sum(
+        stringr::str_detect(
+          paste0(names(df), collapse = "|"), exclude_vars)) < length(exclude_vars)) 
+    {
+      missing_index <- which(
+        !stringr::str_detect(paste0(names(df), collapse = "|"), exclude_vars))
+      stop(sprintf("Variable %s not found in dataset %s", 
+                   exclude_vars[missing_index], 
+                   deparse(substitute(df))))
+    } else {return(TRUE)}
+  }
+  #preparing df by converting character variables to factors and numeric variables 
+  #   into discrete factors
+  df_prep_fun <- function(df, facet_var = NULL) {
     colnames(df) <- str_replace_all(colnames(df), pattern = "\\.", replacement = "\\_")
-    outcome_var <- select(df, outcome)
+    facet_var_var <- select(df, facet_var)
     df %>%
-      select(-all_of(outcome)) %>%             #if outcome is unspecified, this will still run                                                     without removing anything
-      mutate_if(Negate(is.numeric), 
-                .funs = ~ as.factor(x = .)) %>% #converting non-numeric variables to factors
+      select(-all_of(facet_var)) %>%             # if facet_var is unspecified, this will still run 
+      mutate_if(Negate(is.numeric),            #   without removing anything
+                .funs = ~ as.factor(x = .)) %>% # converting non-numeric variables to factors
       ## 7/17 note - 
       # buckets - maybe 5, maybe user inputs#
       mutate_if(is.numeric, ~ cut_number(x = ., n = 5) %>% 
                   as.factor(.)) %>%           
-      bind_cols(outcome_var, .) %>%
+      bind_cols(facet_var_var, .) %>%
       return(.)
   }
   
-  #running univariate analysis 
-  df <- df_prep_fun(df, outcome = outcome)
+  #### checking input filetypes 
+  accepted_filetypes <- c("rds", "rda", "rdata", "xls", "xlsx", "csv")
+  df_name <- deparse(substitute(df))
   
-  # if outcome is null, function will just conduct exploratory analysis on all variables in df 
-  #  not specified in exclude_vars. If an outcome is specified, below code will run...
-  if(!is.null(outcome)){
-    if(outcome_parser(df = df, outcome = outcome)) {
-      df_outcome <- df %>%
-        select(outcome)
+  if(str_detect(tolower(df_name), pattern = paste0(accepted_filetypes, collapse = "|"))) 
+  {
+    if (str_detect(tolower(df_name), "rds"))
+    {
+      df <- readRDS(df)
+    }
+    else if(str_detect(tolower(df_name), "rda|rdata")) {
+      df <- get(load(df))
+    }
+    else if (str_detect(tolower(df_name), "xls|xlsx")) 
+    {
+      df <- read.xlsx(df, sheetName = 1, header = TRUE)
+    }
+    else if (str_detect(tolower(df_name), "csv")) 
+    {
+      df <- read.csv(df, header = TRUE, sep = ",")
+    }
+  }
+  else if (class(df) == "data.frame") {
+    df <- df
+  }
+  else stop("input must be data.frame, R object, or delimited file!")
+  
+  exclude_parser(df = df, exclude_vars = exclude_vars)
+  #running univariate analysis 
+  df <- df_prep_fun(df, facet_var = facet_var)
+  
+  # if facet_var is null, function will just conduct exploratory analysis on all variables in df 
+  #  not specified in exclude_vars. If an facet_var is specified, below code will run...
+  if(!is.null(facet_var)){
+    if(facet_var_parser(df = df, facet_var = facet_var)) {
+      df_facet_var <- df %>%
+        select(facet_var)
       
       df <- df %>%
-        select(-all_of(exclude_vars), -all_of(outcome))
+        select(-all_of(exclude_vars), -all_of(facet_var))
       
-      if(class(df_outcome[[outcome]]) == "factor"){
-        outcome_dist <- df %>%
+      if(class(df_facet_var[[facet_var]]) == "factor"){
+        facet_var_dist <- df %>%
           lapply(., function(x) {
-            table(x, df_outcome[[outcome]]) 
+            table(x, df_facet_var[[facet_var]]) 
           }) %>%
           lapply(., as.data.frame) %>%
           do.call(rbind, .) %>%
@@ -60,7 +103,7 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
           mutate(Freq = round(Freq/sum(Freq), 3)) %>%
           mutate(Freq = paste(Var2, Freq, sep = ":")) %>%
           pivot_wider(names_from = Var2, names_prefix = "freq_levels", values_from = Freq) %>%
-          unite(col = outcome_dist, contains("freq_levels"), sep = " | ")
+          unite(col = facet_var_dist, contains("freq_levels"), sep = " | ")
         
         df_out <- df %>%
           lapply(table) %>%
@@ -74,21 +117,21 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
           mutate(total = sum(n), prop = round(n/total, 3)) %>%
           ungroup(.) %>%
           select(-total) %>%
-          left_join(outcome_dist, by = c("variable", "level")) 
+          left_join(facet_var_dist, by = c("variable", "level")) 
         if(plot == TRUE) {
           predictor_names <- colnames(df)
           df <- df %>%
-            bind_cols(df_outcome)
+            bind_cols(df_facet_var)
           
           plots_count <- lapply(predictor_names, function(x) 
           {
             df %>%
-              ggplot(data = ., aes(x = .data[[x]], fill = .data[[outcome]])) +
+              ggplot(data = ., aes(x = .data[[x]], fill = .data[[facet_var]])) +
               geom_bar(position = "dodge")
           })
           plots_stack <- lapply(predictor_names, function(y) {
             df %>%
-              ggplot(data = ., aes(x = .data[[y]], fill = .data[[outcome]])) +
+              ggplot(data = ., aes(x = .data[[y]], fill = .data[[facet_var]])) +
               geom_bar(position = "fill")
           })
           names(plots_count) <- predictor_names
@@ -100,16 +143,16 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
         }
         else { return(df_out) }
       }
-      else if (class(df_outcome[[outcome]]) %in% c("numeric", "integer", "double")) {
-        outcome_dist <- lapply(colnames(df), function(x)
+      else if (class(df_facet_var[[facet_var]]) %in% c("numeric", "integer", "double")) {
+        facet_var_dist <- lapply(colnames(df), function(x)
         {
           df %>%
-            bind_cols(df_outcome) %>%
+            bind_cols(df_facet_var) %>%
             group_by_(x) %>%
-            summarize(outcome_mean = round(mean(.data[[outcome]], na.rm = TRUE), 3)) %>%
+            summarize(facet_var_mean = round(mean(.data[[facet_var]], na.rm = TRUE), 3)) %>%
             rename(level = 1) %>%
             mutate(variable = x) %>%
-            select(variable, level, outcome_mean)
+            select(variable, level, facet_var_mean)
         }) %>%
           lapply(as.data.frame) %>%
           do.call(rbind, .) 
@@ -126,13 +169,13 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
           mutate(total = sum(n), prop = round(n/total, 3)) %>%
           ungroup(.) %>%
           select(-total) %>%
-          left_join(outcome_dist, by = c("variable", "level")) 
+          left_join(facet_var_dist, by = c("variable", "level")) 
         # return(df_out)
       }
     }
   }
   else {
-    message('no outcome specified - producing descriptives for each variable')
+    message('no facet_varing variable specified - producing descriptives for each variable')
     df_out <- df %>% 
       select(-all_of(exclude_vars)) %>%
       lapply(table) %>% 
@@ -147,19 +190,68 @@ univariate_fun <- function(df, outcome = NULL, exclude_vars = NULL, plot = FALSE
       ungroup(.) %>%
       select(-total)
     
+    df_out <- split(df_out, df_out$variable)
+    
     predictor_names <- df %>%
       select(-all_of(exclude_vars)) %>%
       colnames(.)
     
     plots <- lapply(predictor_names, function(x) 
     {
-      df %>%
-        ggplot(data = ., aes(x = .data[[x]])) +
-        geom_bar(position = "dodge") 
+      df_temp <- df_out[[x]]
+      # ggplot(data = ., aes(x = .data[[x]]$level, y = .data[[x]]$prop)) +
+      plot_temp <- ggpubr::ggdotchart(data = df_temp,
+                                      x = "level", y = "prop", add = "segments",
+                                      add.params = list(color = "lightgray", size = 2),
+                                      dot.size = 4,
+                                      ggtheme = theme_bw()) +
+        ggpubr::font("x.text", size = 8, vjust = 0.9, angle = 45)
+      
+      plot_temp <- ggpubr::ggpar(p = plot_temp, ylim = c(0, 1))
+      
+      # if(mean(nchar(unique(as.character(df_out[[x]]$level)))) > 10) {
+      #   plot_temp <- plot_temp + 
+      #     theme(axis.text.x = element_text(angle = 45))
+      # } else plot_temp <- plot_temp
+      return(plot_temp)
     })
-    return(list(summary_tbl = df_out, plots = plots))
+    if(save == FALSE) {
+      output_list <- list(summary_tbl = df_out,
+                          summary_plots = plots)
+      return(output_list)
+    }
+    else if(save == TRUE) 
+    {
+      
+      names(plots) <- predictor_names
+      
+      grid_layout <- rbind(c(1, 1, 2, 2),
+                           c(3, 3, 4, 4),
+                           c(3, 3, 4, 4),
+                           c(3, 3, 4, 4))
+      
+      output_list <- purrr::pmap(
+        .l = list(
+          df_out[predictor_names], 
+          predictor_names, 
+          plots), 
+        .f = ~ list(
+          var_name = grid::textGrob(label = str_replace(..2, "^.{1}", toupper)), 
+          empty = grid::textGrob(label = ""),
+          summary_tbl = gridExtra::tableGrob(..1, rows = NULL), 
+          var_plot = ..3)) %>%
+        map(., ~ arrangeGrob(grobs = ., layout_matrix = grid_layout, ncol = 2, nrow = 2))
+      
+      output_list <- marrangeGrob(output_list, ncol = 1, nrow = 3, 
+                                  vp = grid::viewport(width = 0.90, height = 0.90))
+      cowplot::ggsave2(plot = output_list, filename = paste0("univariate-summary_", Sys.Date(), ".pdf"), width = 8.5, height = 11, units = "in")
+    }
   }
 }
 
-# function produces error when outcome has period in name, need to address that
-univariate_fun(iris, outcome = "Sepal_Length", plot = T)
+# function produces error when facet_var has period in name, need to address
+univariate_fun("./data/salaries_data.Rds", 
+               exclude_vars = "patient_id", 
+               plot = TRUE, save = TRUE) -> z
+
+
