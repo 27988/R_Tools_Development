@@ -4,12 +4,16 @@
 #' @param facet_var Optional character string of a grouping variable or outcome variable to compare univariate results; defaults to pure univariate analysis
 #' @param exclude_vars Optional character string or vector of character strings specifying variables that should be excluded from analysis, I.E. identifiers, record version indicators, etc.
 #' @param plot Should plots be included in output? Will most likely be removed to force plot inclusion. Defaults to false
-#' @param save If true, will output PDF report of univariate analysis. False, will return list of tables and plot objects for future use. Defaults to FALSE
+#' @param output_type Type of output. Defaults to "rmd," other valid options are "pdf" or "list" / "object"
+#' @param output_path Directory to save output. Default is the current working directory
 #' @return 
 #' @examples
 #' univariate_fun(df = salaries_data, facet_var = "salary", exclude_vars = "patient_id, plot = TRUE, save = TRUE)
-univariate_fun <- function(df, facet_var = NULL, exclude_vars = NULL, plot = FALSE, save = FALSE) {
+univariate_fun <- function(df, facet_var = NULL, exclude_vars = NULL, plot = FALSE, output_type = "rmd",
+                           output_path) {
   require(tidyverse)
+  require(grid)
+  require(gridExtra)
   #defining internal functions
   
   facet_var_parser <- function(df, facet_var_var) {
@@ -36,7 +40,7 @@ univariate_fun <- function(df, facet_var = NULL, exclude_vars = NULL, plot = FAL
     colnames(df) <- str_replace_all(colnames(df), pattern = "\\.", replacement = "\\_")
     facet_var_var <- select(df, facet_var)
     df %>%
-      select(-all_of(facet_var)) %>%             # if facet_var is unspecified, this will still run 
+      select(-all_of(facet_var)) %>%          # if facet_var is unspecified, this will still run 
       mutate_if(Negate(is.numeric),            #   without removing anything
                 .funs = ~ as.factor(x = .)) %>% # converting non-numeric variables to factors
       ## 7/17 note - 
@@ -215,12 +219,17 @@ univariate_fun <- function(df, facet_var = NULL, exclude_vars = NULL, plot = FAL
       # } else plot_temp <- plot_temp
       return(plot_temp)
     })
-    if(save == FALSE) {
+    
+    if(missing(output_path)) {
+      output_path <- paste0(getwd(), "/output/")
+    } else output_path <- output_path
+    
+    if(output_type %in% c("list", "l", "li", "lis")) {
       output_list <- list(summary_tbl = df_out,
                           summary_plots = plots)
       return(output_list)
     }
-    else if(save == TRUE) 
+    else if(output_type %in% c("p", "pd", "pdf")) 
     {
       
       names(plots) <- predictor_names
@@ -240,18 +249,78 @@ univariate_fun <- function(df, facet_var = NULL, exclude_vars = NULL, plot = FAL
           empty = grid::textGrob(label = ""),
           summary_tbl = gridExtra::tableGrob(..1, rows = NULL), 
           var_plot = ..3)) %>%
-        map(., ~ arrangeGrob(grobs = ., layout_matrix = grid_layout, ncol = 2, nrow = 2))
+        map(., ~ gridExtra::arrangeGrob(grobs = ., layout_matrix = grid_layout, 
+                                        ncol = 2, nrow = 2))
       
       output_list <- marrangeGrob(output_list, ncol = 1, nrow = 3, 
                                   vp = grid::viewport(width = 0.90, height = 0.90))
-      cowplot::ggsave2(plot = output_list, filename = paste0("univariate-summary_", Sys.Date(), ".pdf"), width = 8.5, height = 11, units = "in")
+      cowplot::ggsave2(plot = output_list, 
+                       filename = paste0(output_path, "univariate-summary_", Sys.Date(), ".pdf"), 
+                       width = 8.5, height = 11, units = "in")
+    }
+    else if (output_type %in% c("r", "rm", "rmd")) {
+      # generating path for RDS data to be saved, based on output path
+      if(missing(output_path)) {
+        data_path <- paste0(getwd(), "/data/")
+      } else {
+        data_path <- paste0(dirname(output_path), '/data/')
+        }
+      
+      univariate_list_object <- list(
+        predictor_names = predictor_names,
+        df = df_out[predictor_names],
+        plots = plots)
+      names(univariate_list_object$plots) <- predictor_names
+      univariate_list_name <- paste0('univariate-list-object_', Sys.Date(), '.RDS')
+      
+      
+      saveRDS(univariate_list_object, file = paste0(data_path, univariate_list_name))
+      
+      top_block_yaml <- c('---',
+                          'title: "Univariate Analysis Report"',
+                          # paste0('subtitle: "Data Source: ', df_name, '"', collapse = ""),
+                          paste0('author: "', Sys.info()[["user"]],'"'),
+                          paste0('date: "', format(Sys.Date(), '%m/%d/%Y'), '"'),
+                          'output: html_document',
+                          '---',
+                          '',
+                          '```{r setup, include=FALSE}',
+                          'knitr::opts_chunk$set(echo = TRUE)',
+                          '',
+                          'library("tidyverse")',
+                          'library("grid")',
+                          'library("gridExtra")',
+                          'library("ggpubr")',
+                          '',
+                          paste0('univariate_list_object <- readRDS(file = ".', data_path,
+                                 univariate_list_name, '")'),
+                          '```\n')
+      
+      
+      # names_vec <- c("rank", "discipline", "yrs_since_phd", "yrs_service", "sex", "salary")
+      
+      name_vec <- univariate_list_object$predictor_names
+      table_vec <- paste('univariate_list_object$df$', name_vec, sep = '')
+      plot_vec <- paste('univariate_list_object$plots$', name_vec, sep = '')
+      
+      body <- paste('#', name_vec, '\n\n:::: {style="display: flex;"} \n\n::: {} \n\n', 
+                    '\n \n```{r}\n#left column\n',
+                    table_vec,
+                    '\n```\n\n:::\n\n::: {}\n\n```{r}\n#right column\n', plot_vec, 
+                    '\n```\n\n::: \n\n::::\n\n')
+      
+      
+      write(c(top_block_yaml, body), file = paste0(output_path, "zzzzzzzzzz.Rmd"))
+    }
+    else {
+      stop("Please specify valid output format! (One of list, rmd, or pdf)")
     }
   }
 }
 
 # function produces error when facet_var has period in name, need to address
-univariate_fun("./data/salaries_data.Rds", 
-               exclude_vars = "patient_id", 
-               plot = TRUE, save = TRUE) -> z
+output <- univariate_fun("./data/salaries_data.Rds", 
+                         exclude_vars = "patient_id", 
+               plot = TRUE, output_type = "rmd", output_path = "./output/")
 
 
