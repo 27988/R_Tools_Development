@@ -1,0 +1,180 @@
+---
+title: "Univariate Analysis Report"
+author: "amajumder"
+date: "08/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("tidyverse")
+library("grid")
+library("gridExtra")
+library("ggpubr")
+
+univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-08-25.RDS")
+```
+
+# rank 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r}
+#left column
+ univariate_list_object$df$rank 
+```
+
+:::
+
+::: {}
+
+```{r}
+#right column
+ univariate_list_object$plots$rank 
+```
+
+::: 
+
+::::
+
+
+# discipline 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r}
+#left column
+ univariate_list_object$df$discipline 
+```
+
+:::
+
+::: {}
+
+```{r}
+#right column
+ univariate_list_object$plots$discipline 
+```
+
+::: 
+
+::::
+
+
+# yrs_since_phd 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r}
+#left column
+ univariate_list_object$df$yrs_since_phd 
+```
+
+:::
+
+::: {}
+
+```{r}
+#right column
+ univariate_list_object$plots$yrs_since_phd 
+```
+
+::: 
+
+::::
+
+
+# yrs_service 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r}
+#left column
+ univariate_list_object$df$yrs_service 
+```
+
+:::
+
+::: {}
+
+```{r}
+#right column
+ univariate_list_object$plots$yrs_service 
+```
+
+::: 
+
+::::
+
+
+# sex 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r}
+#left column
+ univariate_list_object$df$sex 
+```
+
+:::
+
+::: {}
+
+```{r}
+#right column
+ univariate_list_object$plots$sex 
+```
+
+::: 
+
+::::
+
+
+# salary 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r}
+#left column
+ univariate_list_object$df$salary 
+```
+
+:::
+
+::: {}
+
+```{r}
+#right column
+ univariate_list_object$plots$salary 
+```
+
+::: 
+
+::::
+
+
