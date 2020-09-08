@@ -1,0 +1,161 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Univariate Analysis Report},
+  pdfauthor={amajumder},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs}
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{Univariate Analysis Report}
+\author{amajumder}
+\date{09/08/2020}
+
+\begin{document}
+\maketitle
+
+\hypertarget{rank}{%
+\section{rank}\label{rank}}
+
+\begin{longtable}[]{@{}llrrr@{}}
+\toprule
+variable & level & n & prop & MeanOutcome\tabularnewline
+\midrule
+\endhead
+rank & AssocProf & 64 & 0.161 & 93876.44\tabularnewline
+rank & AsstProf & 67 & 0.169 & 80775.99\tabularnewline
+rank & Prof & 266 & 0.670 & 126772.11\tabularnewline
+\bottomrule
+\end{longtable}
+
+\includegraphics{univariate_report_files/figure-latex/unnamed-chunk-2-1.png}
+
+\hypertarget{discipline}{%
+\section{discipline}\label{discipline}}
+
+\begin{longtable}[]{@{}llrrr@{}}
+\toprule
+variable & level & n & prop & MeanOutcome\tabularnewline
+\midrule
+\endhead
+discipline & A & 181 & 0.456 & 108548.4\tabularnewline
+discipline & B & 216 & 0.544 & 118028.7\tabularnewline
+\bottomrule
+\end{longtable}
+
+\includegraphics{univariate_report_files/figure-latex/unnamed-chunk-4-1.png}
+
+\hypertarget{yrs_since_phd}{%
+\section{yrs\_since\_phd}\label{yrs_since_phd}}
+
+\begin{longtable}[]{@{}llrrr@{}}
+\toprule
+variable & level & n & prop & MeanOutcome\tabularnewline
+\midrule
+\endhead
+yrs\_since\_phd & (10,17.4{]} & 72 & 0.181 & 111924.2\tabularnewline
+yrs\_since\_phd & (17.4,25{]} & 80 & 0.202 & 122292.5\tabularnewline
+yrs\_since\_phd & (25,35{]} & 82 & 0.207 & 129793.9\tabularnewline
+yrs\_since\_phd & (35,56{]} & 76 & 0.191 & 122230.8\tabularnewline
+yrs\_since\_phd & {[}1,10{]} & 87 & 0.219 & 84676.7\tabularnewline
+\bottomrule
+\end{longtable}
+
+\includegraphics{univariate_report_files/figure-latex/unnamed-chunk-6-1.png}
+
+\hypertarget{yrs_service}{%
+\section{yrs\_service}\label{yrs_service}}
+
+\begin{longtable}[]{@{}llrrr@{}}
+\toprule
+variable & level & n & prop & MeanOutcome\tabularnewline
+\midrule
+\endhead
+yrs\_service & (11,19{]} & 71 & 0.179 & 130260.5\tabularnewline
+yrs\_service & (19,28.8{]} & 77 & 0.194 & 124003.9\tabularnewline
+yrs\_service & (28.8,60{]} & 80 & 0.202 & 121093.1\tabularnewline
+yrs\_service & (5,11{]} & 87 & 0.219 & 107662.9\tabularnewline
+yrs\_service & {[}0,5{]} & 82 & 0.207 & 88909.2\tabularnewline
+\bottomrule
+\end{longtable}
+
+\includegraphics{univariate_report_files/figure-latex/unnamed-chunk-8-1.png}
+
+\hypertarget{sex}{%
+\section{sex}\label{sex}}
+
+\begin{longtable}[]{@{}llrrr@{}}
+\toprule
+variable & level & n & prop & MeanOutcome\tabularnewline
+\midrule
+\endhead
+sex & Female & 39 & 0.098 & 101002.4\tabularnewline
+sex & Male & 358 & 0.902 & 115090.4\tabularnewline
+\bottomrule
+\end{longtable}
+
+\includegraphics{univariate_report_files/figure-latex/unnamed-chunk-10-1.png}
+
+\end{document}
