@@ -27,10 +27,11 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   if(length(new.packages)) install_github(new.packages)
   
+  #Flag_path set o 'no' initially
+  flag_path <- 'no'
   
   #defining internal functions
-  
-  exclude_parser <- function(df, exclude_vars) {
+    exclude_parser <- function(df, exclude_vars) {
     if (
       sum(
         stringr::str_detect(
@@ -180,7 +181,8 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
     names(univariate_list_object$plots) <- predictor_names
     
     if(missing(output_path)) {
-      output_path <- paste0(getwd(), "/output/")
+      output_path <- paste0(getwd(), "/")
+      flag_path <- 'yes'
     } else output_path <- output_path
     
     if(tolower(output_type) %in% "list") {
@@ -211,8 +213,10 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
                           'library("htmlwidgets")',
                           'library("devtools")',
                           '',
-                          paste0('univariate_list_object <- readRDS(file = ".', output_path,
-                                 univariate_list_name, '")'),
+                          if (flag_path == "no") {paste0('univariate_list_object <- readRDS(file = ".', output_path,
+                                 univariate_list_name, '")')} else
+                                   {paste0('univariate_list_object <- readRDS(file = "', output_path,
+                                           univariate_list_name, '")')},
                           '```\n')
       
       name_vec <- univariate_list_object$predictor_names
@@ -233,6 +237,11 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
       # render(paste0(output_path, "univariate_report",".Rmd"))
       browseURL(render(paste0(output_path, "univariate_report",".Rmd")))
       
+      #Remove temp files
+      file.remove(paste0(output_path,"myPivot.png"))
+      file.remove(paste0(output_path,"myPivot.html"))
+      file.remove(paste0(output_path,univariate_list_name))
+      file.remove(paste0(output_path,"univariate_report.tex"))
       
     }    else if (tolower(output_type) %in% c("rmd","html")) {
       univariate_list_name <- paste0('univariate-list-object_',Sys.Date(), '.RDS')
@@ -254,9 +263,12 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
                           'library("gridExtra")',
                           'library("ggpubr")',
                           'library("knitr")',
+                          'library("plotly")',
                           '',
-                          paste0('univariate_list_object <- readRDS(file = ".', output_path,
-                                 univariate_list_name, '")'),
+                          if (flag_path == "no") {paste0('univariate_list_object <- readRDS(file = ".', output_path,
+                                                  univariate_list_name, '")')} else
+                                      {paste0('univariate_list_object <- readRDS(file = "', output_path,
+                                                                 univariate_list_name, '")')},
                           '```\n')
       
       name_vec <- univariate_list_object$predictor_names
@@ -274,6 +286,9 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
       # render(paste0(output_path, "univariate_report",".Rmd"))
       browseURL(render(paste0(output_path, "univariate_report",".Rmd")))
       
+      #Remove temp files
+      file.remove(paste0(output_path,univariate_list_name))
+     
       
     }  else if (tolower(output_type) %in% c("rds")) {
       saveRDS(univariate_list_object, file = paste0(output_path,"univariate_report.Rds"))}    else {
@@ -284,8 +299,7 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
 
 
 output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", 
-                         exclude_vars = "patient_id", outcome = "salary",
-                          output_type = "rmd", output_path = "./data/")
+                         exclude_vars = "patient_id", outcome = "salary")
 
 output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", 
                          exclude_vars = "patient_id", outcome = "salary",

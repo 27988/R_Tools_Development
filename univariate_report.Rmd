@@ -15,7 +15,7 @@ library("ggpubr")
 library("knitr")
 library("plotly")
 
-univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09-08.RDS")
+univariate_list_object <- readRDS(file = "/stats/projects/all/R_Tools_Development/univariate-list-object_2020-09-08.RDS")
 ```
 
 # rank 
