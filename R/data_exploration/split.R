@@ -23,6 +23,12 @@ split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratif
   
   data <- filetype(data=data,filetype=filetype)
   
+  #Check if splitkey has valid column name
+  if (!(splitkey %in% colnames(data))) {stop("ERROR: splitkey is not a valid column name")}
+  
+  #Check if trainprop is valid
+  if (trainprop > 1 | trainprop <0) {stop("ERROR: trainprop should be <= 1 and >= 0")}
+  
   #If unique ID is not required
   if (is.null(splitkey)) {
       # If stratified sampling is required
@@ -77,6 +83,12 @@ split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratif
   split.data$train <- train
   split.data$test <- test
   
+  #Check if result is produced correctly
+  if (dim(train)[1] == 0 | dim(test)[1] == 0) {
+    stop("ERROR: One or a combination of the following issues have occurred:
+                  1. stratifyby is a numeric variable or has too many levels
+                  2. trainprop in combination with stratifyby is too small to produce a valid data cut")}
+  
   return(split.data)
 }
 
@@ -85,7 +97,7 @@ split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratif
 library(xlsx)
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 
-res = split(data=data,filetype = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.70)
+res = split(data=data,filetype = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.37)
 res = split(data="/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", filetype = "Rds",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
 res = split(data=data, filetype = "dataframe",seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
 res = split(data=data, filetype = "dataframe",seed=50, splitkey = "patient_id", stratifyby = c("rank"),  trainprop=0.50) 
@@ -93,6 +105,10 @@ res = split(data=data, filetype = "dataframe",seed=50, splitkey = "patient_id", 
 id <- c(rep(1,10),rep(2,10),rep(3,10),rep(4,10),rep(5,10),rep(6,10),rep(7,30),8:314)
 data$id <- id
 
-res = split(data=data,filetype = "dataframe", seed=50, splitkey = "id", stratifyby = c("rank"),  trainprop=0.50) 
+res = split(data=data,filetype = "dataframe", seed=50, splitkey = "id", stratifyby = c("rank"),  trainprop=0.49) 
 res = split(data="/stats/projects/all/R_Tools_Development/data/salaries_data.xlsx", filetype = "xlsx",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
 res = split(data=data, filetype = "Rdata", seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
+
+res = split(data=d,filetype = "dataframe", seed=50, splitkey = "atreyee", stratifyby = c("mpg_int"), trainprop=0.56)
+
+
