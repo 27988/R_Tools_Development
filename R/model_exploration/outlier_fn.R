@@ -3,7 +3,7 @@
 #'
 #' @param df_training A data frame or data table.
 #' @param df_testing  A test data frame or data table. It is optional.
-#' @param numvarlist Type of imputation for numeric variables to be used. Mean is Default method.
+#' @param numvarlist  A vector of numeric variables to be imputed. If NULL, all numeric variables will be imputed.
 #' @param min_outlimit The 1.5 * interquartile range (IQR=Q3-Q1) is subtracted from the value associated with this percentile; The value is between zero and one
 #' @param max_outlimit The 1.5 * interquartile range (IQR=Q3-Q1) is added to the value associated with this percentile; The value is between zero and one
 #' @param impute_type Type of statistic used for imputation; possible types: mean, median, max, min, mode. Default is mean.
@@ -15,18 +15,19 @@
 #' t <-outlier_fn(df_training=df_a, df_testing=df_b , numvarlist=NULL, min_outlimit=0.25, max_outlimit=0.75, impute_type = "mode", round_mean_median=0 , multiplemode="max")
 #' t <-outlier_fn(df_training=df_a, df_testing=df_b , numvarlist=NULL, min_outlimit=0.25, max_outlimit=0.75, impute_type = "mean", round_mean_median=0 , multiplemode="max") 
 
-getmode <- function(x) {
-   x <- x[!is.na(x)]
-   uniqx <- unique(x)
-   tab <- tabulate(match(x, uniqx))
-   uniqx[tab == max(tab)]
-}
+
 
 outlier_fn = function(df_training, df_testing=NULL , numvarlist=NULL 
                    , min_outlimit=0.25, max_outlimit=0.75
                    , impute_type = "mode", round_mean_median=0, multiplemode = "min"){ 
 
 library(data.table)
+  getmode <- function(x) {
+    x <- x[!is.na(x)]
+    uniqx <- unique(x)
+    tab <- tabulate(match(x, uniqx))
+    uniqx[tab == max(tab)]
+  }
   
  training_dt <-  setDT(df_training) 
  testing_dt <- setDT(df_testing)
@@ -163,8 +164,8 @@ df_a <- main_data[random_row,]
 df_b <- main_data[-random_row,]
 df_a <- tibble::add_row(df_a, .before=1) 
 df_b <- tibble::add_row(df_b, .before=1) 
-df_a$checkmode <- c(rep(NA, 2), rep(1,30),rep(2,30))
-df_b$checkmode <- c(NA, NA, 1:26)
+df_a$checkmode <- c(rep(NA, 4), rep(1,29),rep(2,29))
+df_b$checkmode <- c(NA, NA, NA, NA, 1:24)
 
 df_training <- df_a
 df_testing <- df_b 
@@ -204,3 +205,20 @@ t6 <- outlier_fn(df_training=df_a, df_testing=df_b , numvarlist=NULL
 t7 <- outlier_fn(df_training=df_a, df_testing=df_b , numvarlist=NULL 
                  , min_outlimit=0.25, max_outlimit=0.75
                  , impute_type = "mode", round_mean_median=0 , multiplemode="max")
+
+
+################## Imputation test
+data_imputed <- impute(data=df_training ,numvarlist=NULL,type_num = "max",round=2,factvarlist=NULL,type_fact="mode")
+data_imputed <- impute(data=df_training)
+
+#labeling of factor worked perfectly :)
+# what about modes of train set, would be used later in test?
+
+# what if miss place numeric and factor varlist, can add an error?
+data_imputed <- impute(data=df_training ,numvarlist=c("agegp"),type_num = "max",round=2,factvarlist=NULL ,type_fact="mode")
+data_imputed <- impute(data=df_training ,numvarlist=NULL,type_num = "max",round=2,factvarlist=c("agegp"),type_fact="mode")
+
+# what about multiple mode: replace by 1 and then 2 and 1 and then 2
+data_imputed <- impute(data=df_training ,numvarlist=c("checkmode"),type_num = "mode",round=2,factvarlist=c("agegp"),type_fact="mode")
+
+   
