@@ -18,6 +18,9 @@
 
 multicoll_chk <- function(data,excludeVars=NULL,numVars=NULL,categoricalVars=NULL,cutoff=0,corrmethod="pearson",outtype="list",outpath) {
   
+  #Input dataset must have class as data.frame only
+  data = data.frame(data)
+  
   var_type <- var_type_identify(data=data,excludeVars=excludeVars)
   #Identify numeric variables if is.null(numVars)
   if (is.null(numVars)) {

@@ -1,8 +1,8 @@
 ---
 title: "Univariate Analysis Report"
 author: "amajumder"
-date: "09/08/2020"
-output: html_document
+date: "09/14/2020"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -13,9 +13,12 @@ library("grid")
 library("gridExtra")
 library("ggpubr")
 library("knitr")
+library("webshot")
 library("plotly")
+library("htmlwidgets")
+library("devtools")
 
-univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09-08.RDS")
+univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09-14.RDS")
 ```
 
 # rank 
@@ -37,7 +40,9 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
 
 ```{r,  echo = FALSE}
 #right column
- univariate_list_object$plots$rank 
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$rank , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
 ```
 
 ::: 
@@ -64,7 +69,9 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
 
 ```{r,  echo = FALSE}
 #right column
- univariate_list_object$plots$discipline 
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$discipline , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
 ```
 
 ::: 
@@ -91,7 +98,9 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
 
 ```{r,  echo = FALSE}
 #right column
- univariate_list_object$plots$yrs_since_phd 
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$yrs_since_phd , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
 ```
 
 ::: 
@@ -118,7 +127,9 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
 
 ```{r,  echo = FALSE}
 #right column
- univariate_list_object$plots$yrs_service 
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$yrs_service , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
 ```
 
 ::: 
@@ -145,7 +156,9 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
 
 ```{r,  echo = FALSE}
 #right column
- univariate_list_object$plots$sex 
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$sex , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
 ```
 
 ::: 

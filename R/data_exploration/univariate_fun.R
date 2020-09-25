@@ -126,6 +126,8 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
       select(-all_of(exclude_vars),-all_of(outcome)) %>%
       colnames(.)
     
+    
+    #plotly
     f <- list(
       family = "Courier New, monospace",
       size = 18,
