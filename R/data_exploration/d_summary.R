@@ -9,10 +9,10 @@
 #' Summary of Descriptive Statistics
 #'
 #' @param formula An object of class formula, describing how variables to be summarized. 
-#' @param data Input data for summary statistics, default is data frame. If data is not in data frame, please put your data path here
-#' @param filetype Input file type, currently can accept data frame, rds, csv, xls, xlsx, default is data frame.
-#' @param savetype Output type, currently can be rmd, rds, html and pdf, default is rmd.
-#' @param savepath If output type is rds, html or pdf, please put your save path here. 
+#' @param df Input data for summary statistics, default is data frame. If data is not in data frame, please put your data path here
+#' @param filetype_in Input file type, currently can accept data frame, rds, csv, xls, xlsx, default is data frame.
+#' @param filetype_out Output type, currently can be rmd, rds, html and pdf, default is rmd.
+#' @param output_path If output type is rds, html or pdf, please put your save path here. 
 #' @param to_numeric An optional input to change variable class to numeric
 #' @param to_factor An optional input to change variable class to factor
 #' @param level_droprange set the maximum level of a character variable that will be included in the summary table, 
@@ -23,22 +23,22 @@
 #' d_summary(sex ~ race + age, mockstudy)
 #' d_summary(sex ~ race + age, mockstudy, cat.stats = "countrowpct")  # if you need to calculate row percentage
 #' d_summary(sex ~., mockstudy, level_droprange = 5) # set level drop range rather than default
-#' d_summary(sex ~ race + age, mockstudy, savetype = "rds", savepath = "/home/yyang/r_pack/r_test.Rds")
-#' d_summary(sex ~ age + bmi + race, mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf")
-#' d_summary(sex ~., mockstudy, savetype = "pdf", savepath = "/home/yyang/r_pack/r_test.pdf", level_droprange = 5)
+#' d_summary(sex ~ race + age, mockstudy, filetype_out = "rds", output_path = "/home/yyang/r_pack/r_test.Rds")
+#' d_summary(sex ~ age + bmi + race, mockstudy, filetype_out = "pdf", output_path = "/home/yyang/r_pack/r_test.pdf")
+#' d_summary(sex ~., mockstudy, filetype_out = "pdf", output_path = "/home/yyang/r_pack/r_test.pdf", level_droprange = 5)
 
 
 
 
 
-d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, to_factor = NULL, level_droprange = 20,  savetype = "rmd", savepath = NULL, ...) {
+d_summary <- function(formula, df, filetype_in = "dataframe", to_numeric = NULL, to_factor = NULL, level_droprange = 20,  filetype_out = "rmd", output_path = NULL, ...) {
   
   
-  if (tolower(filetype) == "dataframe") {data = data}  else if (tolower(filetype) == "rds") {
-    data = readRDS(data)}  else if (tolower(filetype) == "csv") {
-      data = read.csv(data, header = TRUE, sep = ",")}  else if (tolower(filetype) == "xls") {
-        data = read.xls(data, sheetName = 1, header = TRUE)}  else if (tolower(filetype) == "xlsx") {
-          data = read.xlsx(data, sheetName = 1, header = TRUE)}  else stop ("ERROR: Please select a valid file type")
+  if (tolower(filetype_in) == "dataframe") {data = df}  else if (tolower(filetype_in) == "rds") {
+    data = readRDS(df)}  else if (tolower(filetype_in) == "csv") {
+      data = read.csv(df, header = TRUE, sep = ",")}  else if (tolower(filetype_in) == "xls") {
+        data = read.xls(df, sheetName = 1, header = TRUE)}  else if (tolower(filetype_in) == "xlsx") {
+          data = read.xlsx(df, sheetName = 1, header = TRUE)}  else stop ("ERROR: Please select a valid file type")
   
   library(arsenal)
   library(tidyverse)
@@ -111,7 +111,7 @@ d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, 
   tab1<-tableby(f1, data_a, ...)
   tab1s<- summary(tab1, text = TRUE, ...)
   
-  if (tolower(savetype) == "rmd") {
+  if (tolower(filetype_out) == "rmd") {
     tab1s %>%
       as.data.frame() %>%
       kable()     %>%
@@ -119,28 +119,28 @@ d_summary <- function(formula, data, filetype = "dataframe", to_numeric = NULL, 
       save_kable(file = "table1.html", self_contained = T)
     # result<-tab2 
   } 
-  else if (tolower(savetype) == "rds" & !is.null(savepath)){
+  else if (tolower(filetype_out) == "rds" & !is.null(output_path)){
     tab2<-as.data.frame(tab1s)
     tab2<-dplyr::rename(tab2, variables = "")
-    saveRDS(tab2,savepath)
+    saveRDS(tab2,output_path)
   }
-  else if (tolower(savetype) == "html" & !is.null(savepath) ){
-    write2html(tab1, savepath)
+  else if (tolower(filetype_out) == "html" & !is.null(output_path) ){
+    write2html(tab1, output_path)
   }
-  else if (tolower(savetype) == "pdf" & !is.null(savepath) ){
-    write2pdf(tab1, savepath)
+  else if (tolower(filetype_out) == "pdf" & !is.null(output_path) ){
+    write2pdf(tab1, output_path)
   }
-  else stop ("ERROR: Please check if savetype or savepath is missing/valid")
+  else stop ("ERROR: Please check if filetype_out or output_path is missing/valid")
   
-  if (! purrr::is_empty(l3) & savetype == "rmd") {
+  if (! purrr::is_empty(l3) & filetype_out == "rmd") {
     message ("Warning: Variables shown below are dropped from summary since they exceed maximum level_droprange")
     return((list(l3, browseURL("table1.html") )))
   }
-  else if (! purrr::is_empty(l3) & savetype != "rmd") {
+  else if (! purrr::is_empty(l3) & filetype_out != "rmd") {
     message ("Warning: Variables shown below are dropped from summary since they exceed maximum level_droprange")
     return(l3)
   }
-  else if (purrr::is_empty(l3) & savetype == "rmd") {
+  else if (purrr::is_empty(l3) & filetype_out == "rmd") {
     return(browseURL("table1.html") )
   }
   
@@ -155,5 +155,5 @@ library(knitr)
 
 
 d_summary(rank ~ ., data,level_droprange=3)
-d_summary(rank ~ ., data,level_droprange=4,savetype = "html", savepath = "/stats/projects/all/R_Tools_Development/data/r_test.html")
+d_summary(rank ~ ., data,level_droprange=4,filetype_out = "html", output_path = "/stats/projects/all/R_Tools_Development/data/r_test.html")
 

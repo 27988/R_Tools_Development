@@ -3,12 +3,12 @@
 #' @param df Input dataset; function accepts data.frame objects, as well as direct inputs of .rda/.RData, .rds, .csv, .xls, and .xlsx files
 #' @param outcome Outcome variable name
 #' @param exclude_vars Optional character string or vector of character strings specifying variables that should be excluded from analysis, I.E. identifiers, record version indicators, etc.
-#' @param output_type Type of output. Defaults to "rmd," other valid options are "pdf", "rds" or "list" / "object"
+#' @param filetype_out Type of output. Defaults to "rmd," other valid options are "pdf", "rds" or "list" / "object"
 #' @param output_path Directory to save output. Default is the current working directory
 #' @return 
 #' @examples
 #' univariate_fun(df = salaries_data, exclude_vars = "patient_id, plot = TRUE)
-univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rmd", output_path) {
+univariate_fun <- function(df, outcome , exclude_vars = NULL,  filetype_out = "rmd", output_path) {
   require(tidyverse)
   require(grid)
   require(gridExtra)
@@ -187,9 +187,9 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
       flag_path <- 'yes'
     } else output_path <- output_path
     
-    if(tolower(output_type) %in% "list") {
+    if(tolower(filetype_out) %in% "list") {
        return(univariate_list_object)
-    }    else if(tolower(output_type) %in% "pdf")     {
+    }    else if(tolower(filetype_out) %in% "pdf")     {
       
       univariate_list_name <- paste0('univariate-list-object_',Sys.Date(), '.RDS')
       saveRDS(univariate_list_object, file = paste0(output_path, univariate_list_name))
@@ -245,7 +245,7 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
       file.remove(paste0(output_path,univariate_list_name))
       file.remove(paste0(output_path,"univariate_report.tex"))
       
-    }    else if (tolower(output_type) %in% c("rmd","html")) {
+    }    else if (tolower(filetype_out) %in% c("rmd","html")) {
       univariate_list_name <- paste0('univariate-list-object_',Sys.Date(), '.RDS')
       saveRDS(univariate_list_object, file = paste0(output_path, univariate_list_name))
       
@@ -292,7 +292,7 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  output_type = "rm
       file.remove(paste0(output_path,univariate_list_name))
      
       
-    }  else if (tolower(output_type) %in% c("rds")) {
+    }  else if (tolower(filetype_out) %in% c("rds")) {
       saveRDS(univariate_list_object, file = paste0(output_path,"univariate_report.Rds"))}    else {
       stop("Please specify valid output format! (One of list, rmd, rds, html or pdf)")
     }
@@ -305,18 +305,18 @@ output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_
 
 output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", 
                          exclude_vars = "patient_id", outcome = "salary",
-                          output_type = "htmL", output_path = "./data/")
+                          filetype_out = "htmL", output_path = "./data/")
 
 output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", 
                          exclude_vars = "patient_id", outcome = "salary",
-                          output_type = "rds", output_path = "./data/")
+                          filetype_out = "rds", output_path = "./data/")
 
 output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", 
                          exclude_vars = "patient_id", outcome = "salary",
-                          output_type = "pdf", output_path = "./data/")
+                          filetype_out = "pdf", output_path = "./data/")
 
 output <- univariate_fun("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", 
                          exclude_vars = "patient_id", outcome = "salary",
-                          output_type = "list", output_path = "./data/")
+                          filetype_out = "list", output_path = "./data/")
 
 
