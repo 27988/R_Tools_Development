@@ -1,0 +1,168 @@
+---
+title: "Univariate Analysis Report"
+author: "amajumder"
+date: "09/14/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE, message=FALSE)
+
+library("tidyverse")
+library("grid")
+library("gridExtra")
+library("ggpubr")
+library("knitr")
+library("webshot")
+library("plotly")
+library("htmlwidgets")
+library("devtools")
+
+univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09-14.RDS")
+```
+
+# rank 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$rank ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$rank , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
+```
+
+::: 
+
+::::
+
+
+# discipline 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$discipline ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$discipline , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
+```
+
+::: 
+
+::::
+
+
+# yrs_since_phd 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$yrs_since_phd ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$yrs_since_phd , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
+```
+
+::: 
+
+::::
+
+
+# yrs_service 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$yrs_service ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$yrs_service , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
+```
+
+::: 
+
+::::
+
+
+# sex 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$sex ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ htmlwidgets::saveWidget(
+ univariate_list_object$plots$sex , "myPivot.html", selfcontained = T)
+ webshot2::webshot(url = "myPivot.html", file = "myPivot.png") 
+```
+
+::: 
+
+::::
+
+
