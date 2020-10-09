@@ -155,5 +155,5 @@ library(knitr)
 
 
 d_summary(rank ~ ., data,level_droprange=3)
-d_summary(rank ~ ., data,level_droprange=4,filetype_out = "html", output_path = "/stats/projects/all/R_Tools_Development/data/r_test.html")
+d_summary(rank ~ ., data,level_droprange=4,filetype_out = "pdf", output_path = "/stats/projects/all/R_Tools_Development/data/r_test.pdf")
 

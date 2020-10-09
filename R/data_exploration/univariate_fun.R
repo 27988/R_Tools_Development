@@ -9,23 +9,24 @@
 #' @examples
 #' univariate_fun(df = salaries_data, exclude_vars = "patient_id, plot = TRUE)
 univariate_fun <- function(df, outcome , exclude_vars = NULL,  filetype_out = "rmd", output_path) {
+ 
   require(tidyverse)
   require(grid)
   require(gridExtra)
   library(plotly)
   library(ggplot2)
-  library(knitr)
   library(rmarkdown)
-  
+  library(knitr)
+
   #Check to install packages
   list.of.packages <- c("devtools")
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   if(length(new.packages)) install.packages(new.packages)
   
   #Check to install Github packages
-  list.of.packages.github <- c("rstudio/webshot2")
-  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-  if(length(new.packages)) install_github(new.packages)
+  # list.of.packages.github <- c("rstudio/webshot2")
+  # new.packages <- list.of.packages.github[!(list.of.packages.github %in% installed.packages()[,"Package"])]
+  # if(length(new.packages)) install_github(new.packages)
   
   #Flag_path set o 'no' initially
   flag_path <- 'no'
@@ -120,7 +121,7 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  filetype_out = "r
     }
     
     df_out <- merge(df_out,summ_out_f,by=c("variable","level"),all=T)
-    df_out <- split(df_out, df_out$variable)
+    df_out <- base::split(df_out, df_out$variable)
     
     predictor_names <- df %>%
       select(-all_of(exclude_vars),-all_of(outcome)) %>%
@@ -227,12 +228,11 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  filetype_out = "r
       
       body <- paste('#', name_vec, '\n\n:::: {style="display: flex;"} \n\n::: {} \n\n',
                     '\n \n```{r, echo = FALSE}\n#left column\n','knitr::kable(',
-                    table_vec,',row.names = FALSE)',
+                    table_vec,',format="latex",row.names = FALSE)',
                     '\n```\n\n:::\n\n::: {}\n\n```{r,  echo = FALSE}\n#right column\n',
                     'htmlwidgets::saveWidget(\n',plot_vec,', "myPivot.html", selfcontained = T)\n',
                     'webshot2::webshot(url = "myPivot.html", file = "myPivot.png")',
                     '\n```\n\n::: \n\n::::\n\n')
-      
       
       
       write(c(top_block_yaml, body), file = paste0(output_path, "univariate_report",".Rmd"))
@@ -266,6 +266,7 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  filetype_out = "r
                           'library("ggpubr")',
                           'library("knitr")',
                           'library("plotly")',
+                          'library(kableExtra)',
                           '',
                           if (flag_path == "no") {paste0('univariate_list_object <- readRDS(file = ".', output_path,
                                                   univariate_list_name, '")')} else
@@ -277,12 +278,12 @@ univariate_fun <- function(df, outcome , exclude_vars = NULL,  filetype_out = "r
       table_vec <- paste('univariate_list_object$df$', name_vec, sep = '')
       plot_vec <- paste('univariate_list_object$plots$', name_vec, sep = '')
       
-      body <- paste('#', name_vec, '\n\n:::: {style="display: flex;"} \n\n::: {} \n\n', 
+      body <- paste('#', name_vec,
                     '\n \n```{r, echo = FALSE}\n#left column\n','knitr::kable(',
-                   table_vec,',row.names = FALSE)',
-                    '\n```\n\n:::\n\n::: {}\n\n```{r,  echo = FALSE}\n#right column\n', plot_vec, 
-                    '\n```\n\n::: \n\n::::\n\n')
-      
+                    table_vec,',row.names = FALSE)',  '%>%
+                      kable_styling(bootstrap_options = c("striped", "hover"))',
+                    '\n```\n\n','\n\n```{r,  echo = FALSE}\n#right column\n', plot_vec,'\n```\n\n')
+
       
       write(c(top_block_yaml, body), file = paste0(output_path, "univariate_report",".Rmd"))
       # render(paste0(output_path, "univariate_report",".Rmd"))

@@ -1,7 +1,7 @@
 ---
 title: "Univariate Analysis Report"
 author: "amajumder"
-date: "09/14/2020"
+date: "10/09/2020"
 output: pdf_document
 ---
 
@@ -18,7 +18,7 @@ library("plotly")
 library("htmlwidgets")
 library("devtools")
 
-univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09-14.RDS")
+univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-10-09.RDS")
 ```
 
 # rank 
@@ -31,7 +31,7 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
  
 ```{r, echo = FALSE}
 #left column
- knitr::kable( univariate_list_object$df$rank ,row.names = FALSE) 
+ knitr::kable( univariate_list_object$df$rank ,format="latex",row.names = FALSE) 
 ```
 
 :::
@@ -60,7 +60,7 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
  
 ```{r, echo = FALSE}
 #left column
- knitr::kable( univariate_list_object$df$discipline ,row.names = FALSE) 
+ knitr::kable( univariate_list_object$df$discipline ,format="latex",row.names = FALSE) 
 ```
 
 :::
@@ -89,7 +89,7 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
  
 ```{r, echo = FALSE}
 #left column
- knitr::kable( univariate_list_object$df$yrs_since_phd ,row.names = FALSE) 
+ knitr::kable( univariate_list_object$df$yrs_since_phd ,format="latex",row.names = FALSE) 
 ```
 
 :::
@@ -118,7 +118,7 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
  
 ```{r, echo = FALSE}
 #left column
- knitr::kable( univariate_list_object$df$yrs_service ,row.names = FALSE) 
+ knitr::kable( univariate_list_object$df$yrs_service ,format="latex",row.names = FALSE) 
 ```
 
 :::
@@ -147,7 +147,7 @@ univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09
  
 ```{r, echo = FALSE}
 #left column
- knitr::kable( univariate_list_object$df$sex ,row.names = FALSE) 
+ knitr::kable( univariate_list_object$df$sex ,format="latex",row.names = FALSE) 
 ```
 
 :::
