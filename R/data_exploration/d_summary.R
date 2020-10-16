@@ -42,6 +42,8 @@ d_summary <- function(formula, df, filetype_in = "dataframe", to_numeric = NULL,
   
   library(arsenal)
   library(tidyverse)
+  library(kable)
+  library(kableExtra)
   
   if (!is.null(to_numeric)) {
     for(i in to_numeric ){
