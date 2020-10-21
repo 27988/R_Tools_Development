@@ -1,27 +1,34 @@
 
 #' Partition data into train and test datasets.
 #'
-#' @param data A dataframe if filetype is dataframe or file path.
-#' @param filetype Type of file read. Provide extension of file if not dataframe. Permissible filetypes are Rds, rds, csv, xls and xlsx.
+#' @param df A dataframe if filetype is dataframe or file path.
+#' @param filetype_in Type of file read. Provide extension of file if not dataframe. Permissible filetypes are Rds, rds, csv, xls and xlsx.
 #' @param seed Random seed value.
 #' @param splitkey A key (variable) used to identify all records of the same entity (e.g.patient ID).
 #' @param stratifyby A single column name or vector of column names that will be used to stratify data.
 #' @param trainprop Proportion that should be retained in train dataset. Value ranges between 0 and 1. Default is 0.70.
 #' @return Dataframes as train and test.
 #' @examples
-#' res = split(data=data,filetype = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.70)
-#' res = split(data=data, filetype = "dataframe",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
-#' res = split(data="/stats/projects/all/R_Tools_Development/data/salaries_data.xlsx", filetype = "xlsx",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
-#' res = split(data="/stats/projects/all/R_Tools_Development/data/salaries_data.csv", filetype = "csv", seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
-#' res = split(data=data, filetype = "dataframe",seed=50, splitkey = "patient_id", stratifyby = c("rank"),  trainprop=0.50) 
+#' res = split(df=data,filetype_in = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.70)
+#' res = split(df=data, filetype_in = "dataframe",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
+#' res = split(df="/stats/projects/all/R_Tools_Development/data/salaries_data.xlsx", filetype_in = "xlsx",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
+#' res = split(df="/stats/projects/all/R_Tools_Development/data/salaries_data.csv", filetype_in = "csv", seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
+#' res = split(df=data, filetype_in = "dataframe",seed=50, splitkey = "patient_id", stratifyby = c("rank"),  trainprop=0.50) 
 #' train <- res$train; test <- res$test
 
 
-split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratifyby = NULL, trainprop=0.70) {
+split <- function(df, filetype_in = "dataframe",seed=50, splitkey = NULL, stratifyby = NULL, trainprop=0.70) {
   
   set.seed(seed)
   
-  data <- filetype(data=data,filetype=filetype)
+  data <- filetype(df=df,filetype_in=filetype_in)
+  
+  #Check if splitkey has valid column name
+  if (!is.null(splitkey)) { 
+    if (!(splitkey %in% colnames(data))) {stop("ERROR: splitkey is not a valid column name")}}
+  
+  #Check if trainprop is valid
+  if (trainprop > 1 | trainprop <0) {stop("ERROR: trainprop should be <= 1 and >= 0")}
   
   #If unique ID is not required
   if (is.null(splitkey)) {
@@ -77,6 +84,12 @@ split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratif
   split.data$train <- train
   split.data$test <- test
   
+  #Check if result is produced correctly
+  if (dim(train)[1] == 0 | dim(test)[1] == 0) {
+    stop("ERROR: One or a combination of the following issues have occurred:
+                  1. stratifyby is a numeric variable or has too many levels
+                  2. trainprop in combination with stratifyby is too small to produce a valid data cut")}
+  
   return(split.data)
 }
 
@@ -85,14 +98,18 @@ split <- function(data, filetype = "dataframe",seed=50, splitkey = NULL, stratif
 library(xlsx)
 data = readRDS("/stats/projects/all/R_Tools_Development/data/salaries_data.Rds")
 
-res = split(data=data,filetype = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.70)
-res = split(data="/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", filetype = "Rds",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
-res = split(data=data, filetype = "dataframe",seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
-res = split(data=data, filetype = "dataframe",seed=50, splitkey = "patient_id", stratifyby = c("rank"),  trainprop=0.50) 
+res = split(df=data,filetype_in = "dataframe", seed=50, splitkey = NULL, stratifyby = c("rank","discipline"), trainprop=0.37)
+res = split(df="/stats/projects/all/R_Tools_Development/data/salaries_data.Rds", filetype_in = "Rds",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
+res = split(df=data, filetype_in = "dataframe",seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
+res = split(df=data, filetype_in = "dataframe",seed=50, splitkey = "patient_id", stratifyby = c("rank"),  trainprop=0.50) 
 
 id <- c(rep(1,10),rep(2,10),rep(3,10),rep(4,10),rep(5,10),rep(6,10),rep(7,30),8:314)
 data$id <- id
 
-res = split(data=data,filetype = "dataframe", seed=50, splitkey = "id", stratifyby = c("rank"),  trainprop=0.50) 
-res = split(data="/stats/projects/all/R_Tools_Development/data/salaries_data.xlsx", filetype = "xlsx",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
-res = split(data=data, filetype = "Rdata", seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
+res = split(df=data,filetype_in = "dataframe", seed=50, splitkey = "id", stratifyby = c("rank"),  trainprop=0.49) 
+res = split(df="/stats/projects/all/R_Tools_Development/data/salaries_data.xlsx", filetype_in = "xlsx",seed=50, splitkey = NULL, stratifyby = c("discipline"), trainprop=0.70)
+res = split(df=data, filetype_in = "Rdata", seed=50, splitkey = NULL, stratifyby = NULL,  trainprop=0.50)
+
+res = split(df=data,filetype_in = "dataframe", seed=50, splitkey = "atreyee", stratifyby = c("mpg_int"), trainprop=0.56)
+
+

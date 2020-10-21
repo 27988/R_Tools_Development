@@ -1,0 +1,154 @@
+---
+title: "Univariate Analysis Report"
+author: "amajumder"
+date: "09/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE, message=FALSE)
+
+library("tidyverse")
+library("grid")
+library("gridExtra")
+library("ggpubr")
+library("knitr")
+
+univariate_list_object <- readRDS(file = "../data/univariate-list-object_2020-09-04.RDS")
+```
+
+# rank 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$rank ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ univariate_list_object$plots$rank 
+```
+
+::: 
+
+::::
+
+
+# discipline 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$discipline ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ univariate_list_object$plots$discipline 
+```
+
+::: 
+
+::::
+
+
+# yrs_since_phd 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$yrs_since_phd ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ univariate_list_object$plots$yrs_since_phd 
+```
+
+::: 
+
+::::
+
+
+# yrs_service 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$yrs_service ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ univariate_list_object$plots$yrs_service 
+```
+
+::: 
+
+::::
+
+
+# sex 
+
+:::: {style="display: flex;"} 
+
+::: {} 
+
+ 
+ 
+```{r, echo = FALSE}
+#left column
+ knitr::kable( univariate_list_object$df$sex ,row.names = FALSE) 
+```
+
+:::
+
+::: {}
+
+```{r,  echo = FALSE}
+#right column
+ univariate_list_object$plots$sex 
+```
+
+::: 
+
+::::
+
+
