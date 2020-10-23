@@ -1,11 +1,3 @@
-# R tool Development 
-
-# descriptive statistics
-
-
-#############################################################################################################
-
-
 #' Summary of Descriptive Statistics
 #'
 #' @param formula An object of class formula, describing how variables to be summarized. 
@@ -27,23 +19,13 @@
 #' d_summary(sex ~ age + bmi + race, mockstudy, filetype_out = "pdf", output_path = "/home/yyang/r_pack/r_test.pdf")
 #' d_summary(sex ~., mockstudy, filetype_out = "pdf", output_path = "/home/yyang/r_pack/r_test.pdf", level_droprange = 5)
 
-
-
-
-
 d_summary <- function(formula, df, filetype_in = "dataframe", to_numeric = NULL, to_factor = NULL, level_droprange = 20,  filetype_out = "rmd", output_path = NULL, ...) {
-  
   
   if (tolower(filetype_in) == "dataframe") {data = df}  else if (tolower(filetype_in) == "rds") {
     data = readRDS(df)}  else if (tolower(filetype_in) == "csv") {
       data = read.csv(df, header = TRUE, sep = ",")}  else if (tolower(filetype_in) == "xls") {
         data = read.xls(df, sheetName = 1, header = TRUE)}  else if (tolower(filetype_in) == "xlsx") {
           data = read.xlsx(df, sheetName = 1, header = TRUE)}  else stop ("ERROR: Please select a valid file type")
-  
-  library(arsenal)
-  library(tidyverse)
-  library(kable)
-  library(kableExtra)
   
   if (!is.null(to_numeric)) {
     for(i in to_numeric ){
@@ -147,15 +129,4 @@ d_summary <- function(formula, df, filetype_in = "dataframe", to_numeric = NULL,
   }
   
 }
-
-
-#Test
-
-library(data.table)
-library(kableExtra)
-library(knitr)
-
-
-d_summary(rank ~ ., data,level_droprange=3)
-d_summary(rank ~ ., data,level_droprange=4,filetype_out = "pdf", output_path = "/stats/projects/all/R_Tools_Development/data/r_test.pdf")
 
