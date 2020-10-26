@@ -101,7 +101,7 @@ mlr_function <- function(df_train,
     } else if (length(levels(traintask[[outcome]])) > 2) {
       trainTask <- makeClassifTask(data = traintask,target = outcome)
       testTask <- makeClassifTask(data = testtask, target = outcome)
-    } else stop("ERROR: Outcome variables has less that 2 levels")
+    } else stop("ERROR: Outcome variables has less than 2 levels")
   } else stop("ERROR: Specify a valid tasktype: Regression or Classification")
   
   
