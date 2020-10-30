@@ -2,18 +2,31 @@ Package: RTools
 Title: Tools for BIA Data Science workflow
 Version: 0.0.0.9000
 Authors@R: c(
-    person("Atreyee", "Majumder", email = "Atreyee.Majumder@vnsny.org", c("aut", "cre")),
-    person("Ryan", "Duggan", email = "Ryan.Duggan@vnsny.org", c("aut", "cre")),
-    person("Hoda", "Nouri Khajavi", email = "Hoda.NouriKhajavi@vnsny.org", c("aut", "cre")),
-    person("Yi", "Yang", email = "Yi.Yang@vnsny.org", c("aut", "cre"))
+            person(given = "Atreyee", 
+                   family = "Majumder",
+                   role = c("aut", "cre"),
+                   email = "Atreyee.Majumder@vnsny.org"),
+            person(given = "Ryan", 
+                   family = "Duggan", 
+                   role = c("aut"),
+                   email = "Ryan.Duggan@vnsny.org"),
+            person(given = "Hoda", 
+                   family = "Nouri Khajavi", 
+                   role = c("aut"),
+                   email = "Hoda.NouriKhajavi@vnsny.org"),
+            person(given = "Yi", 
+                   family = "Yang", 
+                   role = c("aut"),
+                   email = "Yi.Yang@vnsny.org")
     )
 Description: What the package does (one paragraph).
 Depends: R (>= 3.5.3)
-Imports: tidyverse
-         data.table
-         arsenal
-         knitr
-         kableExtra
+Imports: tidyverse,
+         data.table,
+         arsenal,
+         knitr,
+         kableExtra,
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.1
