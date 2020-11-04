@@ -20,6 +20,8 @@ mlr_function <- function(df_train,
                          tasktype,
                          outcome,
                          normalize = T,
+                         normalize_type = "standardize",
+                         weights = NULL,
                          family_LR = "gaussian",
                          positive_class = NULL,
                          seed = 100,
@@ -48,6 +50,7 @@ mlr_function <- function(df_train,
                          rdesc_stratify_cols = NULL,
                          show_info = T) {
   
+  if (!is.numeric(df_train[[outcome]]) & !is.factor(df_train[[outcome]])) {stop("ERROR: Outcome variable should be either numeric or factor")}
   
   if (tasktype == "Classification") {
     traintask1 <- df_train[,-which(colnames(df_train) %in% c(exclude_vars,outcome))]
@@ -76,6 +79,32 @@ mlr_function <- function(df_train,
   
   testtask <- testtask[,which(colnames(testtask) %in% colnames(traintask))]
   
+  #Normalize numeric variables
+  mean_normalize <- list()
+  sd_normalize <- list()
+  min_normalize <- list()
+  max_normalize <- list()
+  if (normalize == T) {
+    mean_normalize <- lapply(traintask, function(x) mean(x,na.rm=T))
+    sd_normalize <- lapply(traintask, function(x) sd(x,na.rm=T))
+    min_normalize <- lapply(traintask, function(x) min(x,na.rm=T))
+    max_normalize <- lapply(traintask, function(x) max(x,na.rm=T))
+    
+    if (normalize_type == "standardize") {
+      traintask <-  (traintask - mean_normalize)/sd_normalize
+      testtask <-  (testtask - mean_normalize)/sd_normalize
+    } else  if (normalize_type == "center") {
+      traintask <-  traintask - mean_normalize
+      testtask <-  testtask - mean_normalize
+    } else  if (normalize_type == "scale") {
+      traintask <-  traintask/sd_normalize
+      testtask <-  testtask/sd_normalize
+    } else  if (normalize_type == "range") {
+      traintask <-  (traintask - min_normalize)/(max_normalize - min_normalize)
+      testtask <-  (testtask - min_normalize)/(max_normalize - min_normalize)
+    }
+  }
+  
   detach("package:caret", unload=TRUE)
   library(mlr)
   
@@ -93,6 +122,7 @@ mlr_function <- function(df_train,
     testtask <- data.frame(testtask,df_test[[outcome]])
     colnames(testtask) <- c(test_names,outcome)
     
+    message(paste0("MESSAGE: Outcome Variable has ",length(levels(traintask[[outcome]])), " levels"))
     if (is.null(positive_class)) {positive_class = levels(traintask[[outcome]])[1]}
     #create a task
     if (length(levels(traintask[[outcome]])) == 2) {
@@ -104,12 +134,6 @@ mlr_function <- function(df_train,
     } else stop("ERROR: Outcome variables has less than 2 levels")
   } else stop("ERROR: Specify a valid tasktype: Regression or Classification")
   
-  
-  if (normalize == T) {
-    #normalize the variables
-    trainTask <- normalizeFeatures(trainTask,method = "standardize")
-    testTask <- normalizeFeatures(testTask,method = "standardize")
-  }
   
   set.seed(seed)
   
@@ -229,7 +253,7 @@ mlr_function <- function(df_train,
     lrn_tune <- setHyperPars(lrn,par.vals = mytune$x)
     
     #train model
-    trained_model <- train(learner = lrn_tune,task = trainTask)
+    trained_model <- train(learner = lrn_tune,task = trainTask,weights = weights)
     
     return(list(mytune$x,mytune$y,trained_model))
   } #end of model_choice
@@ -242,7 +266,8 @@ mlr_function <- function(df_train,
       trained_model = model_exec[[3]]
     } else {
       lrn <- makeLearner("regr.cvglmnet",predict.type = "response")
-      trained_model = train(lrn, task = trainTask)
+      trained_model = train(lrn, task = trainTask,weights = weights)
+      model_exec <- list(list(alpha=1,nlambda=100,lambda=trained_model$lambda.min,thresh = 1e-07, maxit = 1e+05),tune_measure_test = NULL)
     }
   } else if (tolower(model) == "categorical regression") {
     if (tune == T) {
@@ -250,7 +275,9 @@ mlr_function <- function(df_train,
       trained_model = model_exec[[3]]
     } else {
       lrn <- makeLearner("classif.cvglmnet",predict.type = "prob")
-      trained_model = train(lrn, task = trainTask)
+      trained_model = train(lrn, task = trainTask,weights = weights)
+      model_exec <- list(list(alpha=1,nlambda=100,lambda=trained_model$lambda.min,thresh = 1e-07, maxit = 1e+05),tune_measure_test = NULL)
+      
     }
   }
   
@@ -281,9 +308,11 @@ mlr_function <- function(df_train,
   features[[i]] = coef[[1]][,1]}
   }
   
-  if (tune == T) {
-    return(list(test_pred,train_pred,model_exec[[1]],model_exec[[2]],features))
-  } else {return(list(test_pred,train_pred,features))}
+   #normalize list 
+   normalize_metrics <- list(mean = mean_normalize, SD = sd_normalize, Minimum = min_normalize, Maximum = max_normalize)
+    return(list(test_pred = test_pred, train_pred = train_pred, hyperparameters = model_exec[[1]], 
+                CV_measure = model_exec[[2]],model_features = features,normalize_metrics = normalize_metrics))
+
 }
 
 
@@ -304,6 +333,8 @@ test_res <- mlr_function(df_train=train,
                          tasktype="Classification",
                          outcome="rank",
                          normalize = T,
+                         normalize_type = "scale",
+                         weights = NULL,
                          family_LR = "gaussian",
                          positive_class = NULL,
                          seed = 100,

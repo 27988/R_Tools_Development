@@ -42,7 +42,7 @@ d_summary <- function(formula, df, filetype_in = "dataframe", to_numeric = NULL,
   
   library(arsenal)
   library(tidyverse)
-  library(kable)
+  library(knitr)
   library(kableExtra)
   
   if (!is.null(to_numeric)) {
