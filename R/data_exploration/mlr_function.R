@@ -37,6 +37,22 @@ mlr_function <- function(df_train,
                          threshU = 0.1,
                          maxitL = 1L,
                          maxitU = 100L,
+                         mtryL = 1L,
+                         mtryU = 10L,
+                         nodesizeL = 1L,
+                         nodesizeU = 10L,
+                         ntreeL = 1L,
+                         ntreeU = 5L,
+                         maxnodesL = 1L,
+                         maxnodesL = 5L,
+                         minsplitL = 1L,
+                         minsplitU = 2L,
+                         minbucketL = 1L,
+                         minbucketU = 2L,
+                         cpL = 0.01,
+                         cpU = 0.1,
+                         maxdepthL = 1L,
+                         maxdepthLU = 5L,
                          meas = "rmse",
                          gridsearch = "random",
                          search_maxit = 20L,
@@ -139,16 +155,8 @@ mlr_function <- function(df_train,
   
   # Define a search space for learner's parameter
   model_choice <- function(model) {
-    if (tolower(model) == "continuous regression") {
-      lrn <- makeLearner("regr.glmnet",predict.type = "response")
-      
-      params <- makeParamSet(makeDiscreteParam(id = "family", value = family_LR),
-                             makeNumericParam(id = "alpha",  lower = alphaL, upper = alphaU),
-                             makeIntegerParam(id = "nlambda",  lower = nlambdaL, upper = nlambdaU),
-                             makeNumericParam(id = "lambda", lower = lambdaL, upper = lambdaU),
-                             makeNumericParam(id = "thresh", lower = threshL, upper = threshU),
-                             makeIntegerParam(id = "maxit", lower = maxitL,upper = maxitU)
-      )
+    
+    if (tasktype == "Regression") {
       
       # Choose a performance measure
       if (tolower(meas) == "rmse"){
@@ -161,50 +169,115 @@ mlr_function <- function(df_train,
         meas = mae
       } else if (tolower(meas) == "medse"){
         meas = medse
+      }  
+    } else if (tasktype == "Classification") {
+        
+        # Choose a performance measure
+        if (tolower(meas) == "acc"){
+          meas = acc
+        } else if (tolower(meas) == "auc"){
+          meas = auc
+        } else if (tolower(meas) == "f1"){
+          meas = f1
+        } else if (tolower(meas) == "fdr"){
+          meas = fdr
+        } else if (tolower(meas) == "fn"){
+          meas = fn
+        } else if (tolower(meas) == "fp"){
+          meas = fp
+        } else if (tolower(meas) == "fpr"){
+          meas = fpr
+        } else if (tolower(meas) == "mmce"){
+          meas = mmce
+        } else if (tolower(meas) == "ppv"){
+          meas = ppv
+        } else if (tolower(meas) == "tn"){
+          meas = tn
+        } else if (tolower(meas) == "tnr"){
+          meas = tnr
+        } else if (tolower(meas) == "tp"){
+          meas = tp
+        } else if (tolower(meas) == "tpr"){
+          meas = tpr
+        } 
+      }
+    
+    if (tasktype == "Regression") {
+      
+      if (tolower(model) == "glmnet") {
+        lrn <- makeLearner("regr.glmnet",predict.type = "response")
+        
+        params <- makeParamSet(makeDiscreteParam(id = "family", value = family_LR),
+                               makeNumericParam(id = "alpha",  lower = alphaL, upper = alphaU),
+                               makeIntegerParam(id = "nlambda",  lower = nlambdaL, upper = nlambdaU),
+                               makeNumericParam(id = "lambda", lower = lambdaL, upper = lambdaU),
+                               makeNumericParam(id = "thresh", lower = threshL, upper = threshU),
+                               makeIntegerParam(id = "maxit", lower = maxitL,upper = maxitU)
+        )
+        
+        
+      } else if (tolower(model) == "random forest") {
+        
+        lrn = makeLearner("regr.randomForest")
+        
+        params <- makeParamSet(makeIntegerParam("mtry",lower = mtryL,upper = mtryU),
+                               makeIntegerParam("nodesize",lower = nodesizeL,upper = nodesizeU),
+                               makeDiscreteParam("ntree",lower = ntreeL,upper = ntreeU),
+                               makeIntegerParam("maxnodes",lower = maxnodesL,upper = maxnodesU)
+        )
+        
+        
+      } else if (tolower(model) == "decision tree") {
+        
+        lrn = makeLearner("regr.rpart")
+        
+        params <- makeParamSet(
+          makeIntegerParam("minsplit",lower = minsplitL, upper = minsplitU),
+          makeIntegerParam("minbucket", lower = minbucketL, upper = minbucketU),
+          makeNumericParam("cp", lower = cpL, upper = cpU),
+          makeIntegerParam("maxdepth",lower = maxdepthL,upper = maxdepthU)
+        )
+        
+      } 
+    } else if (tasktype == "Classification") {
+    
+       if (tolower(model) == "glmnet") {
+        
+        lrn <- makeLearner("classif.glmnet",predict.type = "prob")
+        
+        params <- makeParamSet(
+          makeNumericParam(id = "alpha",  lower = alphaL, upper = alphaU),
+          makeIntegerParam(id = "nlambda",  lower = nlambdaL, upper = nlambdaU),
+          makeNumericParam(id = "lambda", lower = lambdaL, upper = lambdaU),
+          makeNumericParam(id = "thresh", lower = threshL, upper = threshU),
+          makeIntegerParam(id = "maxit", lower = maxitL,upper = maxitU)
+        )
+        
+        
+      }  else if (tolower(model) == "random forest") {
+        
+        lrn = makeLearner("classif.randomForest", predict.type = "prob", fix.factors.prediction = TRUE)
+        
+        params <- makeParamSet(makeIntegerParam("mtry",lower = mtryL,upper = mtryU),
+                               makeIntegerParam("nodesize",lower = nodesizeL,upper = nodesizeU),
+                               makeDiscreteParam("ntree",lower = ntreeL,upper = ntreeU),
+                               makeIntegerParam("maxnodes",lower = maxnodesL,upper = maxnodesU)
+        )
+        
+        
+      }  else if (tolower(model) == "decision tree") {
+        
+        lrn = makeLearner("classif.rpart",prdict.type = "prob")
+        
+        params <- makeParamSet(
+          makeIntegerParam("minsplit",lower = minsplitL, upper = minsplitU),
+          makeIntegerParam("minbucket", lower = minbucketL, upper = minbucketU),
+          makeNumericParam("cp", lower = cpL, upper = cpU),
+          makeIntegerParam("maxdepth",lower = maxdepthL,upper = maxdepthU)
+        )
       }
       
-    } else if (tolower(model) == "categorical regression") {
-      
-      lrn <- makeLearner("classif.glmnet",predict.type = "prob")
-      
-      params <- makeParamSet(
-        makeNumericParam(id = "alpha",  lower = alphaL, upper = alphaU),
-        makeIntegerParam(id = "nlambda",  lower = nlambdaL, upper = nlambdaU),
-        makeNumericParam(id = "lambda", lower = lambdaL, upper = lambdaU),
-        makeNumericParam(id = "thresh", lower = threshL, upper = threshU),
-        makeIntegerParam(id = "maxit", lower = maxitL,upper = maxitU)
-      )
-      
-      # Choose a performance measure
-      if (tolower(meas) == "acc"){
-        meas = acc
-      } else if (tolower(meas) == "auc"){
-        meas = auc
-      } else if (tolower(meas) == "f1"){
-        meas = f1
-      } else if (tolower(meas) == "fdr"){
-        meas = fdr
-      } else if (tolower(meas) == "fn"){
-        meas = fn
-      } else if (tolower(meas) == "fp"){
-        meas = fp
-      } else if (tolower(meas) == "fpr"){
-        meas = fpr
-      } else if (tolower(meas) == "mmce"){
-        meas = mmce
-      } else if (tolower(meas) == "ppv"){
-        meas = ppv
-      } else if (tolower(meas) == "tn"){
-        meas = tn
-      } else if (tolower(meas) == "tnr"){
-        meas = tnr
-      } else if (tolower(meas) == "tp"){
-        meas = tp
-      } else if (tolower(meas) == "tpr"){
-        meas = tpr
-      } 
-      
-    } #end of logistic
+    }
     
     
     # Choose a tuning method
