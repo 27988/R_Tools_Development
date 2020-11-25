@@ -38,13 +38,13 @@ mlr_function <- function(df_train,
                          maxitL = 1L,
                          maxitU = 100L,
                          mtryL = 1L,
-                         mtryU = 10L,
+                         mtryU = 4L,
                          nodesizeL = 1L,
-                         nodesizeU = 10L,
+                         nodesizeU = 2L,
                          ntreeL = 1L,
-                         ntreeU = 5L,
+                         ntreeU = 4L,
                          maxnodesL = 1L,
-                         maxnodesU = 5L,
+                         maxnodesU = 2L,
                          minsplitL = 1L,
                          minsplitU = 2L,
                          minbucketL = 1L,
@@ -52,10 +52,10 @@ mlr_function <- function(df_train,
                          cpL = 0.01,
                          cpU = 0.1,
                          maxdepthL = 1L,
-                         maxdepthLU = 5L,
+                         maxdepthU = 2L,
                          meas = "rmse",
                          gridsearch = "random",
-                         search_maxit = 20L,
+                         search_maxit = 2L,
                          search_reso = 10L,
                          rdesc = "CV",
                          rdesc_iters = 5L,
@@ -222,7 +222,7 @@ mlr_function <- function(df_train,
         
         params <- makeParamSet(makeIntegerParam("mtry",lower = mtryL,upper = mtryU),
                                makeIntegerParam("nodesize",lower = nodesizeL,upper = nodesizeU),
-                               makeDiscreteParam("ntree",lower = ntreeL,upper = ntreeU),
+                               makeIntegerParam("ntree",lower = ntreeL,upper = ntreeU),
                                makeIntegerParam("maxnodes",lower = maxnodesL,upper = maxnodesU)
         )
         
@@ -260,14 +260,14 @@ mlr_function <- function(df_train,
         
         params <- makeParamSet(makeIntegerParam("mtry",lower = mtryL,upper = mtryU),
                                makeIntegerParam("nodesize",lower = nodesizeL,upper = nodesizeU),
-                               makeDiscreteParam("ntree",lower = ntreeL,upper = ntreeU),
+                               makeIntegerParam("ntree",lower = ntreeL,upper = ntreeU),
                                makeIntegerParam("maxnodes",lower = maxnodesL,upper = maxnodesU)
         )
         
         
       }  else if (tolower(model) == "decision tree") {
         
-        lrn = makeLearner("classif.rpart",prdict.type = "prob")
+        lrn = makeLearner("classif.rpart",predict.type = "prob")
         
         params <- makeParamSet(
           makeIntegerParam("minsplit",lower = minsplitL, upper = minsplitU),
@@ -333,18 +333,41 @@ mlr_function <- function(df_train,
   
   
   #### Model should be tuned or not
-  if (tolower(model) == "continuous regression") {
+  if (tasktype == "Regression") {
+  if (tolower(model) == "glmnet") {
     if (tune == T) {
-      model_exec = model_choice(model = "continuous regression")
+      model_exec = model_choice(model = "glmnet")
       trained_model = model_exec[[3]]
     } else {
       lrn <- makeLearner("regr.cvglmnet",predict.type = "response")
       trained_model = train(lrn, task = trainTask,weights = weights)
       model_exec <- list(list(alpha=1,nlambda=100,lambda=trained_model$lambda.min,thresh = 1e-07, maxit = 1e+05),tune_measure_test = NULL)
     }
-  } else if (tolower(model) == "categorical regression") {
+  } else if (tolower(model) == "random forest") {
     if (tune == T) {
-      model_exec = model_choice(model = "categorical regression")
+      model_exec = model_choice(model = "random forest")
+      trained_model = model_exec[[3]]
+    } else {
+      lrn <- makeLearner("regr.randomForest",predict.type = "response")
+      trained_model = train(lrn, task = trainTask,weights = weights)
+      model_exec <- list(list(nodesize=5, ntree=500),tune_measure_test = NULL)
+    }
+  }  else if (tolower(model) == "decision tree") {
+    if (tune == T) {
+      model_exec = model_choice(model = "decision tree")
+      trained_model = model_exec[[3]]
+    } else {
+      lrn <- makeLearner("regr.rpart",predict.type = "response")
+      trained_model = train(lrn, task = trainTask,weights = weights)
+      model_exec <- list(list(minsplit =20, cp=0.01, maxdepth=30),tune_measure_test = NULL)
+    }
+  }
+  
+  } else if (tasktype == "Classification") {
+    
+    if (tolower(model) == "glmnet") {
+    if (tune == T) {
+      model_exec = model_choice(model = "glmnet")
       trained_model = model_exec[[3]]
     } else {
       lrn <- makeLearner("classif.cvglmnet",predict.type = "prob")
@@ -352,6 +375,25 @@ mlr_function <- function(df_train,
       model_exec <- list(list(alpha=1,nlambda=100,lambda=trained_model$lambda.min,thresh = 1e-07, maxit = 1e+05),tune_measure_test = NULL)
       
     }
+    } else if (tolower(model) == "random forest") {
+      if (tune == T) {
+        model_exec = model_choice(model = "random forest")
+        trained_model = model_exec[[3]]
+      }  else {
+      lrn <- makeLearner("classif.randomForest",predict.type = "prob")
+      trained_model = train(lrn, task = trainTask,weights = weights)
+      model_exec <- list(list(nodesize=5, ntree=500),tune_measure_test = NULL)
+    }
+  }  else if (tolower(model) == "decision tree") {
+    if (tune == T) {
+      model_exec = model_choice(model = "decision tree")
+      trained_model = model_exec[[3]]
+    } else {
+      lrn <- makeLearner("classif.rpart",predict.type = "prob")
+      trained_model = train(lrn, task = trainTask,weights = weights)
+      model_exec <- list(list(minsplit =20, cp=0.01, maxdepth=30),tune_measure_test = NULL)
+    }
+  }
   }
   
   
@@ -372,6 +414,7 @@ mlr_function <- function(df_train,
     train_pred <- data.frame(ID = df_train[[exclude_vars]],train_pred[,-which(colnames(train_pred) %in% c("id","response"))])
   }
   
+  if (model == "glmnet") {
   if (length(levels(traintask[[outcome]])) == 2 | is.numeric(traintask[[outcome]])) {
     coef = coef(getLearnerModel(trained_model,more.unwrap = T))
     features = coef[,1]
@@ -379,6 +422,10 @@ mlr_function <- function(df_train,
   for (i in 1:(length(coef(getLearnerModel(trained_model,more.unwrap = T)))))
   {coef = coef(getLearnerModel(trained_model,more.unwrap = T))[i]
   features[[i]] = coef[[1]][,1]}
+  }
+  } else {
+    mat <- getFeatureImportance(trained_model) 
+    features <- tidyr::gather(mat$res, "variable", "importance") %>% arrange(desc(importance))
   }
   
    #normalize list 
@@ -398,13 +445,13 @@ train = res[[1]]
 test = res[[2]]
 
 
-
+library(tidyverse)
 test_res <- mlr_function(df_train=train,
                          df_test=test,
-                         model="categorical regression",
+                         model="decision tree",
                          exclude_vars = "patient_id",
-                         tasktype="Classification",
-                         outcome="rank",
+                         tasktype="Regression",
+                         outcome="salary",
                          normalize = T,
                          normalize_type = "scale",
                          weights = NULL,
@@ -424,13 +471,13 @@ test_res <- mlr_function(df_train=train,
                          maxitL = 10L,
                          maxitU = 100L,
                          mtryL = 1L,
-                         mtryU = 10L,
+                         mtryU = 4L,
                          nodesizeL = 1L,
-                         nodesizeU = 10L,
+                         nodesizeU = 2L,
                          ntreeL = 1L,
-                         ntreeU = 5L,
+                         ntreeU = 4L,
                          maxnodesL = 1L,
-                         maxnodesU = 5L,
+                         maxnodesU = 2L,
                          minsplitL = 1L,
                          minsplitU = 2L,
                          minbucketL = 1L,
@@ -438,10 +485,10 @@ test_res <- mlr_function(df_train=train,
                          cpL = 0.01,
                          cpU = 0.1,
                          maxdepthL = 1L,
-                         maxdepthLU = 5L,
-                         meas = "acc",
+                         maxdepthU = 2L,
+                         meas = "mse",
                          gridsearch = "random",
-                         search_maxit = 20L,
+                         search_maxit = 2L,
                          search_reso = 10L,
                          rdesc = "CV",
                          rdesc_iters = 5L,
@@ -451,4 +498,6 @@ test_res <- mlr_function(df_train=train,
                          rdesc_stratify = FALSE,
                          rdesc_stratify_cols = NULL,
                          show_info = T)
+
+
 
