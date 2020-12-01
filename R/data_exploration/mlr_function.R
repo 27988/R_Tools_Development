@@ -1,16 +1,110 @@
 #' MLR sub function for model building.
 #'
-#' @param df_train
-#' @param df_test
-#' @param model 
-#' @param exclude_vars 
-#' @param tasktype
-#' @param target 
-#' @param positive_class 
-#' @param seed
-#' @param full_rank
+#' @param df_train A dataframe for training the model
+#' @param df_test A dataframe to be used for test/ validation
+#' @param model Type of model. Permissible choices are 'glmnet', 'random forest' and 'decision tree'
+#' @param exclude_vars List of variables to be excluded from the datasets for model building
+#' @param tasktype Type of model task. Can be 'Regression' or 'Classification. 
+#' @param outcome Target variable (y in the model formula)
+#' @param normalize Should the data be normalized? Logical value. Default is F. Normailizing data with this input will produce results in the normalized scale.
+#' @param normalize_type Type of normalization to be used. Default is 'standardize'. Can be 'standardize', 'center', 'scale' and 'range'
+#' @param weights Weights of the model. Default is NULL
+#' @param family_LR Type of linear Regreesion family if choice is regression glmnet. Default is 'gaussian'
+#' @param positive_class Positive Class for a binary outcome. 
+#' @param seed Set seed for randomization
+#' @param full_rank Should one hot encoding matrix be full rank? Default is T
+#' @param tune Should hyperparameters be tuned? Default is T 
+#' @param alphaL Glmnet hyperparameter: Lower limit for elastic net mixing parameter
+#' @param alphaU Glmnet hyperparameter: Upper limit for elastic net mixing parameter
+#' @param nlambdaL Glmnet hyperparameter: Lower limit for number of lambda (penalty parameter)
+#' @param nlambdaU Glmnet hyperparameter: Upper limit for number of lambda (penalty parameter)
+#' @param lambdaL  Glmnet hyperparameter: Lower limit for lambda (penalty parameter)
+#' @param lambdaU Glmnet hyperparameter: Upper limit for lambda (penalty parameter)
+#' @param threshL Glmnet hyperparameter: Lower limit for convergence threshold for coordinate descent.
+#' @param threshU Glmnet hyperparameter: Lower limit for convergence threshold for coordinate descent.
+#' @param maxitL Glmnet hyperparameter: Lower limit for maximum number of passes over the data for all lambda values
+#' @param maxitU Glmnet hyperparameter: Upper limit for maximum number of passes over the data for all lambda values
+#' @param mtryL Random Forest hyperparameter: Lower limit for number of variables randomly sampled as candidates at each split
+#' @param mtryU Random Forest hyperparameter: Upper limit for number of variables randomly sampled as candidates at each split
+#' @param nodesizeL Random Forest hyperparameter: Lower limit for minimum size of terminal nodes
+#' @param nodesizeU Random Forest hyperparameter: Upper limit for minimum size of terminal nodes
+#' @param ntreeL Random Forest hyperparameter: Lower limit for number of trees to grow
+#' @param ntreeU Random Forest hyperparameter: Upper limit for number of trees to grow
+#' @param maxnodesL Random Forest hyperparameter: Lower limit for maximum number of terminal nodes trees in the forest can have
+#' @param maxnodesU Random Forest hyperparameter: Upper limit for maximum number of terminal nodes trees in the forest can have
+#' @param minsplitL Decision Tree hyperparameter: Lower limit for minimum number of observations that must exist in a node in order for a split to be attempted
+#' @param minsplitU Decision Tree hyperparameter: Upper limit for minimum number of observations that must exist in a node in order for a split to be attempted
+#' @param minbucketL Decision Tree hyperparameter: Lower limit for e minimum number of observations in any terminal <leaf> node
+#' @param minbucketU Decision Tree hyperparameter: Upper limit for e minimum number of observations in any terminal <leaf> node
+#' @param cpL Decision Tree hyperparameter: Lower limit for complexity parameter
+#' @param cpU Decision Tree hyperparameter: Upper limit for complexity parameter
+#' @param maxdepthL Decision Tree hyperparameter: Lower limit for maximum depth of any node of the final tree
+#' @param maxdepthU Decision Tree hyperparameter: Upper limit for maximum depth of any node of the final tree
+#' @param meas Metric to be used tuning the model. Sets of measures are different for Regression and Classification tasktypes
+#' @param gridsearch Type of grid search for tuning. Default is 'random' 
+#' @param search_maxit Number of CV iterations for random grid search
+#' @param search_reso Number of steps in complete grid search
+#' @param rdesc Resampling strategy; default is CV
+#' @param rdesc_iters Number of iterations for CV, Subsample or bootstrap resampling
+#' @param rdesc_split Number of splits for Holdout or Subsample resampling
+#' @param rdesc_folds Number of folds for RepCV resampling
+#' @param rdesc_reps Number of repetitions for RepCV resampling
+#' @param rdesc_stratify Should stratified sampling be used? Logical value; default is FALSE
+#' @param rdesc_stratify_cols Columns for stratified resampling
+#' @param show_info Show tuning log; default is T
 #' @examples
-#' 
+#' test_res <- mlr_function(df_train=train,
+#' df_test=test,
+#' model="random forest",
+#' exclude_vars = "patient_id",
+#' tasktype="Regression",
+#' outcome="salary",
+#' normalize = T,
+#' normalize_type = "scale",
+#' weights = NULL,
+#' family_LR = "gaussian",
+#' positive_class = NULL,
+#' seed = 100,
+#' full_rank = T,
+#' tune = T,
+#' alphaL = 0,
+#' alphaU = 1,
+#' nlambdaL = 1L,
+#' nlambdaU = 100L,
+#' lambdaL = 0,
+#' lambdaU = 0.05,
+#' threshL = 1e-07,
+#' threshU = 1,
+#' maxitL = 10L,
+#' maxitU = 100L,
+#' mtryL = 1L,
+#' mtryU = 4L,
+#' nodesizeL = 1L,
+#' nodesizeU = 2L,
+#' ntreeL = 1L,
+#' ntreeU = 4L,
+#' maxnodesL = 2L,
+#' maxnodesU = 4L,
+#' minsplitL = 1L,
+#' minsplitU = 2L,
+#' minbucketL = 1L,
+#' minbucketU = 2L,
+#' cpL = 0.01,
+#' cpU = 0.1,
+#' maxdepthL = 1L,
+#' maxdepthU = 2L,
+#' meas = "mse",
+#' gridsearch = "random",
+#' search_maxit = 2L,
+#' search_reso = 10L,
+#' rdesc = "CV",
+#' rdesc_iters = 5L,
+#' rdesc_split = 2/3,
+#' rdesc_folds = 10,
+#' rdesc_reps = 10,
+#' rdesc_stratify = FALSE,
+#' rdesc_stratify_cols = NULL,
+#' show_info = T)
 
 
 mlr_function <- function(df_train,
@@ -19,7 +113,7 @@ mlr_function <- function(df_train,
                          exclude_vars = NULL,
                          tasktype,
                          outcome,
-                         normalize = T,
+                         normalize = F,
                          normalize_type = "standardize",
                          weights = NULL,
                          family_LR = "gaussian",
@@ -67,6 +161,8 @@ mlr_function <- function(df_train,
                          show_info = T) {
   
   if (!is.numeric(df_train[[outcome]]) & !is.factor(df_train[[outcome]])) {stop("ERROR: Outcome variable should be either numeric or factor")}
+  if (!(model %in% c('glmnet', 'random forest', 'decision tree'))) {stop("ERROR: Permissible model choices are 'glmnet', 'random forest' and 'decision tree'")}
+  if (!(tasktype %in% c('Regression', 'Classification'))) {stop("ERROR: Permissible tasktype choices are 'Regression', 'Classification'")}
   
   if (tasktype == "Classification") {
     traintask1 <- df_train[,-which(colnames(df_train) %in% c(exclude_vars,outcome))]
