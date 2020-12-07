@@ -162,7 +162,12 @@ mlr_function <- function(df_train,
   
   if (!is.numeric(df_train[[outcome]]) & !is.factor(df_train[[outcome]])) {stop("ERROR: Outcome variable should be either numeric or factor")}
   if (!(model %in% c('glmnet', 'random forest', 'decision tree'))) {stop("ERROR: Permissible model choices are 'glmnet', 'random forest' and 'decision tree'")}
-  if (!(tasktype %in% c('Regression', 'Classification'))) {stop("ERROR: Permissible tasktype choices are 'Regression', 'Classification'")}
+  
+  #Regression outcome should always be numeric
+  if (tasktype == "Regression") {
+    df_train[[outcome]] <- ifelse(is.numeric(df_train[[outcome]] ),df_train[[outcome]] ,as.numeric(levels(df_train[[outcome]]))[df_train[[outcome]]] )
+    df_test[[outcome]] <- ifelse(is.numeric(df_test[[outcome]] ),df_test[[outcome]] ,as.numeric(levels(df_train[[outcome]]))[df_train[[outcome]]] )
+  }
   
   if (tasktype == "Classification") {
     traintask1 <- df_train[,-which(colnames(df_train) %in% c(exclude_vars,outcome))]
